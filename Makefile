@@ -1,2 +1,2 @@
-osk-sdl: main.cpp
-	g++ -o osk-sdl main.cpp -std=c++14 -Werror -w -lcryptsetup `sdl-config --cflags --libs`
+osk-sdl: main.cpp keyboard.cpp keyboard.h
+	g++ -o osk-sdl main.cpp keyboard.cpp -std=c++14 -Werror -w -lcryptsetup -lSDL_ttf `sdl-config --cflags --libs`

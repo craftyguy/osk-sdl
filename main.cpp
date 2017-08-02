@@ -2,6 +2,7 @@
 #include <iostream>
 #include <libcryptsetup.h>
 #include <unistd.h>
+#include "keyboard.h"
 
 using namespace std;
 
@@ -110,24 +111,17 @@ int main(int argc, char **args) {
 
   // Set up screen
   screen = SDL_SetVideoMode(WIDTH, HEIGHT, 32, SDL_SWSURFACE);
-  /*
-   * If this fails, try to swap height/width in case device is in
-   * 'landscape' mode
-   */
-  if (screen == NULL) {
-    screen = SDL_SetVideoMode(HEIGHT, WIDTH, 32, SDL_SWSURFACE);
-    int t = HEIGHT;
-    HEIGHT = WIDTH;
-    WIDTH = t;
-  }
+
   if (screen == NULL) {
     printf("Unable to set up video mode!\n");
     return -1;
   }
+
   SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 255, 128, 0));
   SDL_Flip(screen);
 
-  auto keyboardColor = SDL_MapRGB(screen->format, 30, 30, 30);
+  SDL_Surface* keyboard = makeKeyboard(WIDTH, HEIGHT/2);
+
   next_time = SDL_GetTicks() + TICK_INTERVAL;
 
   while (unlocked == false) {
@@ -170,7 +164,7 @@ int main(int argc, char **args) {
       keyboardRect.y = (int)(HEIGHT - ((HEIGHT / 2) * keyboardPosition));
       keyboardRect.w = WIDTH;
       keyboardRect.h = (int)(HEIGHT / 2 * keyboardPosition);
-      SDL_FillRect(screen, &keyboardRect, keyboardColor);
+      SDL_BlitSurface(keyboard, NULL, screen, &keyboardRect);
     }
     SDL_Delay(time_left());
     next_time += TICK_INTERVAL;
