@@ -1,13 +1,16 @@
 #include "SDL2/SDL.h"
+#include <SDL2/SDL_ttf.h>
 #include <string>
+#include "config.h"
 
 using namespace std;
 
 void drawRow(SDL_Surface *surface, int x, int y, int width, int height,
-             char *keys, int padding) {
+             char *keys, int padding, TTF_Font *font) {
 
   auto keyBackground = SDL_MapRGB(surface->format, 15, 15, 15);
   auto keyColor = SDL_MapRGB(surface->format, 200, 200, 200);
+  SDL_Color textColor = {255, 255, 255, 0};
 
   int i = 0;
 
@@ -20,11 +23,15 @@ void drawRow(SDL_Surface *surface, int x, int y, int width, int height,
     keyRect.w = width - (2 * padding);
     keyRect.h = height - (2 * padding);
     SDL_FillRect(surface, &keyRect, keyBackground);
+    SDL_Surface *surface;
+    char text[] = "a";
+    text[0] = keyCap;
+    surface = TTF_RenderText_Solid(font, text, textColor);
     i++;
   }
 }
 
-SDL_Surface *makeKeyboard(int width, int height) {
+SDL_Surface *makeKeyboard(int width, int height,Config *config) {
   SDL_Surface *surface;
   Uint32 rmask, gmask, bmask, amask;
 
@@ -59,12 +66,14 @@ SDL_Surface *makeKeyboard(int width, int height) {
   char row3[] = "asdfghjkl";
   char row4[] = "zxcvbnm";
 
-  drawRow(surface, 0, 0, width / 10, rowHeight,row1, width / 100);
+  TTF_Font *font = TTF_OpenFont(config->keyboardFont.c_str(), 24);
+
+  drawRow(surface, 0, 0, width / 10, rowHeight,row1, width / 100, font);
   drawRow(surface, 0, rowHeight, width / 10, rowHeight, row2,
-          width / 100);
+          width / 100, font);
   drawRow(surface, width / 20, rowHeight * 2, width / 10, rowHeight,
-          row3, width / 100);
+          row3, width / 100, font);
   drawRow(surface, width / 10, rowHeight * 3, width / 10, rowHeight, row4,
-          width / 100);
+          width / 100, font);
   return surface;
 }

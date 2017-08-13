@@ -220,7 +220,7 @@ int main(int argc, char **args) {
     // Not stopping here, this is a pretty recoverable error.
   }
 
-  SDL_Surface* keyboard = makeKeyboard(WIDTH, keyboardHeight);
+  SDL_Surface* keyboard = makeKeyboard(WIDTH, keyboardHeight, &config);
   SDL_Texture* keyboardTexture =  SDL_CreateTextureFromSurface(renderer, keyboard);
 
   while (unlocked == false) {
