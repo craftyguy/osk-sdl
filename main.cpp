@@ -223,6 +223,9 @@ int main(int argc, char **args) {
   SDL_Surface* keyboard = makeKeyboard(WIDTH, keyboardHeight, &config);
   SDL_Texture* keyboardTexture =  SDL_CreateTextureFromSurface(renderer, keyboard);
 
+  // Make SDL send text editing events for textboxes
+  SDL_StartTextInput();
+
   while (unlocked == false) {
     SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 255, 128, 0));
     if (SDL_PollEvent(&event)) {
@@ -238,13 +241,11 @@ int main(int argc, char **args) {
           /* for development usage */
           unlocked = true;
           break;
+        case SDLK_BACKSPACE:
+          passphrase.pop_back();
+          break;
         case SDLK_ESCAPE:
           exit(1);
-          break;
-        default:
-          if (!event.key.repeat)
-            /* TODO: handle key modifiers & alphanumberic/symbol presses */
-            passphrase.append("*");
           break;
         }
         break;
@@ -255,6 +256,9 @@ int main(int argc, char **args) {
         /* TODO: handle taps on keycaps */
         printf("xMouse: %i\tyMouse: %i\n", xMouse, yMouse);
         passphrase.append("*");
+        break;
+      case SDL_TEXTINPUT:
+        passphrase.append(event.text.text);
         break;
       }
     }
