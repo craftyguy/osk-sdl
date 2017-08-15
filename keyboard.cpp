@@ -23,10 +23,19 @@ void drawRow(SDL_Surface *surface, int x, int y, int width, int height,
     keyRect.w = width - (2 * padding);
     keyRect.h = height - (2 * padding);
     SDL_FillRect(surface, &keyRect, keyBackground);
-    SDL_Surface *surface;
+    SDL_Surface *textSurface;
+
     char text[] = "a";
     text[0] = keyCap;
-    surface = TTF_RenderText_Solid(font, text, textColor);
+    textSurface = TTF_RenderText_Blended(font, text, textColor);
+
+    SDL_Rect keyCapRect;
+    keyCapRect.x = keyRect.x + ((keyRect.w/2)-(textSurface->w/2));
+    keyCapRect.y = keyRect.y;
+    keyCapRect.w = keyRect.w;
+    keyCapRect.h = keyRect.h;
+    SDL_BlitSurface(textSurface,NULL, surface, &keyCapRect);
+
     i++;
   }
 }
@@ -66,7 +75,16 @@ SDL_Surface *makeKeyboard(int width, int height,Config *config) {
   char row3[] = "asdfghjkl";
   char row4[] = "zxcvbnm";
 
+  if(TTF_Init()==-1) {
+    printf("TTF_Init: %s\n", TTF_GetError());
+    exit(1);
+  }
+
   TTF_Font *font = TTF_OpenFont(config->keyboardFont.c_str(), 24);
+  if(!font) {
+      printf("TTF_OpenFont: %s\n", TTF_GetError());
+      exit(1);
+  }
 
   drawRow(surface, 0, 0, width / 10, rowHeight,row1, width / 100, font);
   drawRow(surface, 0, rowHeight, width / 10, rowHeight, row2,
