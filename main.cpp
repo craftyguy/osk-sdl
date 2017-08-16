@@ -65,6 +65,42 @@ void draw_circle(SDL_Renderer *renderer, SDL_Point center, int radius) {
   }
 }
 
+SDL_Surface* make_wallpaper(SDL_Renderer *renderer, Config *config, int width, int height){
+  SDL_Surface *surface;
+  Uint32 rmask, gmask, bmask, amask;
+
+  /* SDL interprets each pixel as a 32-bit number, so our masks must depend
+     on the endianness (byte order) of the machine */
+  #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
+  #else
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+  #endif
+
+  surface = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32, rmask, gmask,
+                                 bmask, amask);
+
+  if(config->wallpaper[0] == '#'){
+    int r, g, b;
+    if(sscanf(config->wallpaper.c_str(), "#%02x%02x%02x", &r, &g, &b)!=3){
+      fprintf(stderr, "Could not parse color code %s\n", config->wallpaper.c_str());
+      exit(1);
+    }
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, r, g, b));
+  }else{
+    // Implement image loading
+    fprintf(stderr, "Image loading not supported yet\n");
+    exit(1);
+  }
+  return surface;
+}
+
 int main(int argc, char **args) {
   /*
    * These strings are for development only
@@ -226,8 +262,11 @@ int main(int argc, char **args) {
   // Make SDL send text editing events for textboxes
   SDL_StartTextInput();
 
+  SDL_Surface* wallpaper = make_wallpaper(renderer, &config, WIDTH, HEIGHT);
+  SDL_Texture* wallpaperTexture = SDL_CreateTextureFromSurface(renderer, wallpaper);
+  
   while (unlocked == false) {
-    SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 255, 128, 0));
+    SDL_RenderCopy(renderer, wallpaperTexture, NULL, NULL);
     if (SDL_PollEvent(&event)) {
       /* an event was found */
       switch (event.type) {
