@@ -102,7 +102,8 @@ SDL_Surface *makeKeyboard(int width, int height, Config *config) {
 
   if (surface == NULL) {
     fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
-    exit(1);
+    exit(1)
+    SDL_Quit();
   }
 
   auto keyboardColor = SDL_MapRGB(surface->format, 30, 30, 30);
@@ -116,7 +117,8 @@ SDL_Surface *makeKeyboard(int width, int height, Config *config) {
 
   if (TTF_Init() == -1) {
     printf("TTF_Init: %s\n", TTF_GetError());
-    exit(1);
+    exit(1)
+    SDL_Quit();
   }
 
   TTF_Font *font = TTF_OpenFont(config->keyboardFont.c_str(), 24);
