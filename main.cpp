@@ -14,7 +14,7 @@ using namespace std;
 static Uint32 next_time;
 
 static int unlock_crypt_dev(const char *path, const char *device_name,
-                            const char *passphrase) {
+                            const char *passphrase, uint32_t passphrase_size) {
   struct crypt_device *cd;
   struct crypt_active_device cad;
   int ret;
@@ -35,7 +35,7 @@ static int unlock_crypt_dev(const char *path, const char *device_name,
   }
 
   ret = crypt_activate_by_passphrase(
-      cd, device_name, CRYPT_ANY_SLOT, passphrase, sizeof(passphrase),
+      cd, device_name, CRYPT_ANY_SLOT, passphrase, passphrase_size,
       CRYPT_ACTIVATE_ALLOW_DISCARDS); /* Enable TRIM support */
   if (ret < 0){
     printf("crypt_activate_by_passphrase failed on device. Errno %i\n", ret);
@@ -290,7 +290,8 @@ int main(int argc, char **args) {
         switch (event.key.keysym.sym) {
         case SDLK_RETURN:
           /* One day this will be sufficient */
-          unlocked = !unlock_crypt_dev(path, dev_name, passphrase.c_str());
+          unlocked = !unlock_crypt_dev(path, dev_name,
+                                       passphrase.c_str(), passphrase.size());
           printf("unlocked: %i\n", unlocked);
           break;
         case SDLK_BACKSPACE:
@@ -311,7 +312,8 @@ int main(int argc, char **args) {
         offsetYMouse = yMouse - (int)(HEIGHT - (keyboardHeight * keyboardPosition));
         tapped = getCharForCoordinates(xMouse, offsetYMouse);
         if(tapped == '\n'){
-          unlocked = !unlock_crypt_dev(path, dev_name, passphrase.c_str());
+          unlocked = !unlock_crypt_dev(path, dev_name,
+                                       passphrase.c_str(), passphrase.size());
           printf("unlocked: %i\n", unlocked);
         }
         if(tapped != '\0'){
