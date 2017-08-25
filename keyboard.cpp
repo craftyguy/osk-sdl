@@ -40,9 +40,8 @@ void drawRow(SDL_Surface *surface, int x, int y, int width, int height,
     keyList.push_back(
         {keyCap, x + (i * width), x + (i * width) + width, y, y + height});
 
-    char text[] = "a";
-    text[0] = keyCap;
-    textSurface = TTF_RenderText_Blended(font, text, textColor);
+    char text[1] = {keyCap};
+    textSurface = TTF_RenderUTF8_Blended(font, text, textColor);
 
     SDL_Rect keyCapRect;
     keyCapRect.x = keyRect.x + ((keyRect.w / 2) - (textSurface->w / 2));
@@ -111,10 +110,10 @@ SDL_Surface *makeKeyboard(int width, int height, Config *config) {
   SDL_FillRect(surface, NULL, keyboardColor);
 
   int rowHeight = height / 5;
-  char row1[] = "1234567890";
-  char row2[] = "qwertyuiop";
-  char row3[] = "asdfghjkl";
-  char row4[] = "zxcvbnm";
+  char row1[] = u8"1234567890";
+  char row2[] = u8"qwertyuiop";
+  char row3[] = u8"asdfghjkl";
+  char row4[] = u8"\u00B5zxcvbnm";
 
   if (TTF_Init() == -1) {
     printf("TTF_Init: %s\n", TTF_GetError());
