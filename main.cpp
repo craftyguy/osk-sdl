@@ -172,9 +172,6 @@ int main(int argc, char **args) {
       break;
     case 'c':
       config_file = optarg;
-      if(!config.Read(config_file)){
-        return 1;
-      }
       break;
     default:
       fprintf(stdout, "Usage: osk_mouse [-t] [-d /dev/sda] [-n device_name] [-c /etc/osk.conf]\n");
@@ -191,10 +188,18 @@ int main(int argc, char **args) {
     return 1;
   }
 
-  uld.path=path;
+  if (config_file == NULL){
+    config_file = config_file_default;
+  }
+  if(!config.Read(config_file)){
+    fprintf(stderr, "No valid config file specified, use -c [path]");
+    return 1;
+  }
+
+  uld.path = path;
   uld.device_name = dev_name;
 
-  SDL_LogSetAllPriority(SDL_LOG_PRIORITY_ERROR);
+  SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_EVENTS |
                SDL_INIT_TIMER | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER) < 0) {
@@ -208,7 +213,6 @@ int main(int argc, char **args) {
     // in test mode.
     SDL_DisplayMode mode = { SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
     if(SDL_GetDisplayMode(0, 0, &mode) != 0){
-      printf("Unable to get display resolution!\n");
       SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
       SDL_Quit();
       return -1;
