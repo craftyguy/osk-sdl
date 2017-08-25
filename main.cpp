@@ -5,6 +5,7 @@
 #include <string>
 #include <cstdlib>
 #include <unistd.h>
+#include <list>
 #include "keyboard.h"
 #include "config.h"
 
@@ -20,8 +21,7 @@ bool unlock_running = false;
 struct unlock_data{
   const char *path;
   const char *device_name;
-  const char *passphrase;
-  uint32_t passphrase_size;
+  const list<string> *passphrase;
 };
 
 static int unlock_crypt_dev(void *data){
@@ -30,6 +30,14 @@ static int unlock_crypt_dev(void *data){
   int ret;
   unlock_data *uld = (unlock_data*) data;
   unlock_running = true;
+  list<string>::const_iterator it;
+  string lpass = "";
+
+  /* Build passphrase string */
+  for (it = uld->passphrase->begin(); it != uld->passphrase->end(); ++it){
+    lpass.append(*it);
+  }
+  printf("%ls", lpass.c_str());
 
   usleep(MIN_UNLOCK_TIME_MS * 1000);
 
@@ -51,7 +59,7 @@ static int unlock_crypt_dev(void *data){
   }
 
   ret = crypt_activate_by_passphrase(
-      cd, uld->device_name, CRYPT_ANY_SLOT, uld->passphrase, uld->passphrase_size,
+      cd, uld->device_name, CRYPT_ANY_SLOT, lpass.c_str(), lpass.size(),
       CRYPT_ACTIVATE_ALLOW_DISCARDS); /* Enable TRIM support */
   if (ret < 0){
     printf("crypt_activate_by_passphrase failed on device. Errno %i\n", ret);
@@ -132,7 +140,7 @@ int main(int argc, char **args) {
   char *path = NULL;
   char *dev_name = NULL;
   char *config_file = NULL;
-  string passphrase;
+  list<string> passphrase;
 
   Config config;
 
@@ -296,7 +304,7 @@ int main(int argc, char **args) {
   SDL_Texture* wallpaperTexture = SDL_CreateTextureFromSurface(renderer, wallpaper);
 
   int offsetYMouse;
-  char tapped;
+  string tapped;
 
   while (unlocked == false) {
     SDL_RenderCopy(renderer, wallpaperTexture, NULL, NULL);
@@ -313,14 +321,13 @@ int main(int argc, char **args) {
         prev_keydown_ticks = cur_ticks;
         switch (event.key.keysym.sym) {
         case SDLK_RETURN:
-          if (passphrase.length() > 0 && !unlock_running){
-            uld.passphrase = passphrase.c_str();
-            uld.passphrase_size = passphrase.size();
+          if (passphrase.size() > 0 && !unlock_running){
+            uld.passphrase = &passphrase;
             SDL_CreateThread(unlock_crypt_dev, "unlock_crypt_dev", (void *)&uld);
           }
           break;
         case SDLK_BACKSPACE:
-          if (passphrase.length() > 0 && !unlock_running){
+          if (passphrase.size() > 0 && !unlock_running){
               passphrase.pop_back();
               continue;
           }
@@ -338,14 +345,13 @@ int main(int argc, char **args) {
         printf("xMouse: %i\tyMouse: %i\n", xMouse, yMouse);
         offsetYMouse = yMouse - (int)(HEIGHT - (keyboardHeight * keyboardPosition));
         tapped = getCharForCoordinates(xMouse, offsetYMouse);
-        if(tapped == '\n'){
-          uld.passphrase = passphrase.c_str();
-          uld.passphrase_size = passphrase.size();
+        if(tapped.compare("\n") == 0){
+          uld.passphrase = &passphrase;
           SDL_CreateThread(unlock_crypt_dev, "unlock_crypt_dev", (void *)&uld);
           continue;
         }
-        if (tapped != '\0' && !unlock_running){
-            passphrase.push_back(tapped);
+        if (tapped.compare("\0") != 0 && !unlock_running){
+          passphrase.push_back(tapped);
         }
         break;
       case SDL_TEXTINPUT:
@@ -357,7 +363,7 @@ int main(int argc, char **args) {
         if ((cur_ticks - repeat_delay_ms) > prev_text_ticks){
           prev_text_ticks = cur_ticks;
           if (!unlock_running){
-            passphrase.append(event.text.text);
+            passphrase.push_back(event.text.text);
           }
         }
         break;
@@ -401,7 +407,7 @@ int main(int argc, char **args) {
 
     // Draw password dots
     int dotSize = WIDTH * 0.02;
-    for (int i = 0; i < passphrase.length(); i++) {
+    for (int i = 0; i < passphrase.size(); i++) {
       SDL_Point dotPos;
       dotPos.x = (WIDTH / 10) + (i * dotSize * 3);
       dotPos.y = (topHalf / 2);
