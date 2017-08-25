@@ -144,9 +144,12 @@ int main(int argc, char **args) {
   int WIDTH = 480;
   int HEIGHT = 800;
   int opt;
-  //Keyboard key repeat rate in ms
+  /* Keyboard key repeat rate in ms */
   int repeat_delay_ms = 100;
-  int prev_key_timestamp = 0;
+  /* Two sep. prev_ticks required for handling textinput & keydown event types */
+  int prev_keydown_ticks = 0;
+  int prev_text_ticks = 0;
+  int cur_ticks = 0;
 
   SDL_Thread *unlock_thread = NULL;
   unlock_data uld;
@@ -295,15 +298,23 @@ int main(int argc, char **args) {
   while (unlocked == false) {
     SDL_RenderCopy(renderer, wallpaperTexture, NULL, NULL);
     while (SDL_PollEvent(&event)) {
+      cur_ticks = SDL_GetTicks();
       /* an event was found */
       switch (event.type) {
       /* handle the keyboard */
       case SDL_KEYDOWN:
+        /* handle repeat key events */
+        if ((cur_ticks - repeat_delay_ms) < prev_keydown_ticks){
+          continue;
+        }
+        prev_keydown_ticks = cur_ticks;
         switch (event.key.keysym.sym) {
         case SDLK_RETURN:
-          uld.passphrase = passphrase.c_str();
-          uld.passphrase_size = passphrase.size();
-          SDL_CreateThread(unlock_crypt_dev, "unlock_crypt_dev", (void *)&uld);
+          if (passphrase.length() > 0 && !unlock_running){
+            uld.passphrase = passphrase.c_str();
+            uld.passphrase_size = passphrase.size();
+            SDL_CreateThread(unlock_crypt_dev, "unlock_crypt_dev", (void *)&uld);
+          }
           break;
         case SDLK_BACKSPACE:
           if (passphrase.length() > 0 && !unlock_running){
@@ -322,7 +333,6 @@ int main(int argc, char **args) {
         xMouse = event.button.x;
         yMouse = event.button.y;
         printf("xMouse: %i\tyMouse: %i\n", xMouse, yMouse);
-
         offsetYMouse = yMouse - (int)(HEIGHT - (keyboardHeight * keyboardPosition));
         tapped = getCharForCoordinates(xMouse, offsetYMouse);
         if(tapped == '\n'){
@@ -340,10 +350,11 @@ int main(int argc, char **args) {
          * Only register text input if time since last text input has exceeded
          * the keyboard repeat delay rate
          */
-        if ((event.text.timestamp - repeat_delay_ms) > prev_key_timestamp){
-          prev_key_timestamp = event.text.timestamp;
+        /* Enable key repeat delay */
+        if ((cur_ticks - repeat_delay_ms) > prev_text_ticks){
+          prev_text_ticks = cur_ticks;
           if (!unlock_running){
-              passphrase.append(event.text.text);
+            passphrase.append(event.text.text);
           }
         }
         break;
