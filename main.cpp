@@ -1,4 +1,5 @@
 #include "SDL2/SDL.h"
+#include "SDL2/SDL_thread.h"
 #include <iostream>
 #include <libcryptsetup.h>
 #include <string>
@@ -12,17 +13,28 @@ using namespace std;
 #define TICK_INTERVAL 16
 
 static Uint32 next_time;
+bool unlocked = false;
+bool unlock_running = false;
 
-static int unlock_crypt_dev(const char *path, const char *device_name,
-                            const char *passphrase, uint32_t passphrase_size) {
+struct unlock_data{
+  const char *path;
+  const char *device_name;
+  const char *passphrase;
+  uint32_t passphrase_size;
+};
+
+static int unlock_crypt_dev(void *data){
   struct crypt_device *cd;
   struct crypt_active_device cad;
   int ret;
+  unlock_data *uld = (unlock_data*) data;
+  unlock_running = true;
 
   /* Initialize crypt device */
-  ret = crypt_init(&cd, path);
+  ret = crypt_init(&cd, uld->path);
   if (ret < 0) {
-    printf("crypt_init() failed for %s.\n", path);
+    printf("crypt_init() failed for %s.\n", uld->path);
+    unlock_running = false;
     return ret;
   }
 
@@ -31,19 +43,23 @@ static int unlock_crypt_dev(const char *path, const char *device_name,
   if (ret < 0) {
     printf("crypt_load() failed on device %s.\n", crypt_get_device_name(cd));
     crypt_free(cd);
+    unlock_running = false;
     return ret;
   }
 
   ret = crypt_activate_by_passphrase(
-      cd, device_name, CRYPT_ANY_SLOT, passphrase, passphrase_size,
+      cd, uld->device_name, CRYPT_ANY_SLOT, uld->passphrase, uld->passphrase_size,
       CRYPT_ACTIVATE_ALLOW_DISCARDS); /* Enable TRIM support */
   if (ret < 0){
     printf("crypt_activate_by_passphrase failed on device. Errno %i\n", ret);
     crypt_free(cd);
+    unlock_running = false;
     return ret;
   }
-  printf("Successfully unlocked device %s\n", path);
+  printf("Successfully unlocked device %s\n", uld->path);
   crypt_free(cd);
+  unlocked = true;
+  unlock_running = false;
   return 0;
 }
 
@@ -119,7 +135,6 @@ int main(int argc, char **args) {
 
   bool testmode = false;
 
-  bool unlocked = false;
   SDL_Event event;
   float keyboardPosition = 0;
   float keyboardTargetPosition = 1;
@@ -132,6 +147,10 @@ int main(int argc, char **args) {
   //Keyboard key repeat rate in ms
   int repeat_delay_ms = 100;
   int prev_key_timestamp = 0;
+
+  SDL_Thread *unlock_thread = NULL;
+  unlock_data uld;
+  bool unlock_submitted = false;
 
   /*
    * This is a workaround for: https://bugzilla.libsdl.org/show_bug.cgi?id=3751
@@ -168,9 +187,12 @@ int main(int argc, char **args) {
   }
 
   if (!dev_name) {
-    fprintf(stderr, "No device name specified, use -n [name] or -n\n");
+    fprintf(stderr, "No device name specified, use -n [name] or -t\n");
     return 1;
   }
+
+  uld.path=path;
+  uld.device_name = dev_name;
 
   SDL_LogSetAllPriority(SDL_LOG_PRIORITY_ERROR);
 
@@ -178,6 +200,7 @@ int main(int argc, char **args) {
                SDL_INIT_TIMER | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER) < 0) {
     SDL_Log("SDL_Init failed: %s", SDL_GetError());
     SDL_Quit();
+    return -1;
   }
 
   if (!testmode) {
@@ -274,14 +297,14 @@ int main(int argc, char **args) {
       case SDL_KEYDOWN:
         switch (event.key.keysym.sym) {
         case SDLK_RETURN:
-          /* One day this will be sufficient */
-          unlocked = !unlock_crypt_dev(path, dev_name,
-                                       passphrase.c_str(), passphrase.size());
-          printf("unlocked: %i\n", unlocked);
+          uld.passphrase = passphrase.c_str();
+          uld.passphrase_size = passphrase.size();
+          SDL_CreateThread(unlock_crypt_dev, "unlock_crypt_dev", (void *)&uld);
           break;
         case SDLK_BACKSPACE:
           if (passphrase.length() > 0)
-            passphrase.pop_back();
+            if (!unlock_running)
+              passphrase.pop_back();
           break;
         case SDLK_ESCAPE:
           exit(1);
@@ -297,13 +320,14 @@ int main(int argc, char **args) {
         offsetYMouse = yMouse - (int)(HEIGHT - (keyboardHeight * keyboardPosition));
         tapped = getCharForCoordinates(xMouse, offsetYMouse);
         if(tapped == '\n'){
-          unlocked = !unlock_crypt_dev(path, dev_name,
-                                       passphrase.c_str(), passphrase.size());
-          printf("unlocked: %i\n", unlocked);
+          uld.passphrase = passphrase.c_str();
+          uld.passphrase_size = passphrase.size();
+          SDL_CreateThread(unlock_crypt_dev, "unlock_crypt_dev", (void *)&uld);
         }
         if(tapped != '\0'){
           printf("Char: %i\n", tapped);
-          passphrase.push_back(tapped);
+          if (!unlock_running)
+            passphrase.push_back(tapped);
         }
         break;
       case SDL_TEXTINPUT:
@@ -313,7 +337,8 @@ int main(int argc, char **args) {
          */
         if ((event.text.timestamp - repeat_delay_ms) > prev_key_timestamp){
           prev_key_timestamp = event.text.timestamp;
-          passphrase.append(event.text.text);
+          if (!unlock_running)
+            passphrase.append(event.text.text);
         }
         break;
       }
