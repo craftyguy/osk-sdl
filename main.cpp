@@ -360,6 +360,9 @@ int main(int argc, char **args) {
         break;
       }
     }
+    /* Hide keyboard if unlock luks thread is running */
+    keyboardTargetPosition = !unlock_running;
+
     if (keyboardPosition != keyboardTargetPosition) {
       if (keyboardPosition > keyboardTargetPosition) {
         keyboardPosition -= (keyboardPosition - keyboardTargetPosition) / 10;
