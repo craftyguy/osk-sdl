@@ -297,7 +297,7 @@ int main(int argc, char **args) {
     while (SDL_PollEvent(&event)) {
       /* an event was found */
       switch (event.type) {
-        /* handle the keyboard */
+      /* handle the keyboard */
       case SDL_KEYDOWN:
         switch (event.key.keysym.sym) {
         case SDLK_RETURN:
@@ -306,15 +306,17 @@ int main(int argc, char **args) {
           SDL_CreateThread(unlock_crypt_dev, "unlock_crypt_dev", (void *)&uld);
           break;
         case SDLK_BACKSPACE:
-          if (passphrase.length() > 0)
-            if (!unlock_running)
+          if (passphrase.length() > 0 && !unlock_running){
               passphrase.pop_back();
+              continue;
+          }
           break;
         case SDLK_ESCAPE:
           exit(1);
           break;
         }
         break;
+      /* handle the mouse/touchscreen */
       case SDL_MOUSEBUTTONUP:
         unsigned int xMouse, yMouse;
         xMouse = event.button.x;
@@ -327,10 +329,9 @@ int main(int argc, char **args) {
           uld.passphrase = passphrase.c_str();
           uld.passphrase_size = passphrase.size();
           SDL_CreateThread(unlock_crypt_dev, "unlock_crypt_dev", (void *)&uld);
+          continue;
         }
-        if(tapped != '\0'){
-          printf("Char: %i\n", tapped);
-          if (!unlock_running)
+        if (tapped != '\0' && !unlock_running){
             passphrase.push_back(tapped);
         }
         break;
@@ -341,8 +342,9 @@ int main(int argc, char **args) {
          */
         if ((event.text.timestamp - repeat_delay_ms) > prev_key_timestamp){
           prev_key_timestamp = event.text.timestamp;
-          if (!unlock_running)
-            passphrase.append(event.text.text);
+          if (!unlock_running){
+              passphrase.append(event.text.text);
+          }
         }
         break;
       }
