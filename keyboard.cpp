@@ -1,5 +1,6 @@
 #include "SDL2/SDL.h"
 #include "config.h"
+#include "keyboard.h"
 #include <SDL2/SDL_ttf.h>
 #include <string>
 #include <vector>
@@ -111,7 +112,7 @@ SDL_Surface *makeKeyboard(int width, int height, Config *config) {
   list<string> row1 {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
   list<string> row2 {"q", "w", "e", "r", "t", "y", "u", "i", "o", "p"};
   list<string> row3 {"a", "s", "d", "f", "g", "h", "j", "k", "l"};
-  list<string> row4 {"\u00B5", "z", "x", "c", "v", "b", "n", "m"};
+  list<string> row4 {KEYCAP_SHIFT, "z", "x", "c", "v", "b", "n", "m", KEYCAP_BACKSPACE};
 
   if (TTF_Init() == -1) {
     printf("TTF_Init: %s\n", TTF_GetError());
@@ -130,7 +131,7 @@ SDL_Surface *makeKeyboard(int width, int height, Config *config) {
           font);
   drawRow(surface, width / 20, rowHeight * 2, width / 10, rowHeight, &row3,
           width / 100, font);
-  drawRow(surface, width / 10, rowHeight * 3, width / 10, rowHeight, &row4,
+  drawRow(surface, width / 20, rowHeight * 3, width / 10, rowHeight, &row4,
           width / 100, font);
 
   // Divide the bottom row in 20 columns and use that for calculations

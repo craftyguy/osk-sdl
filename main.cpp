@@ -37,7 +37,6 @@ static int unlock_crypt_dev(void *data){
   for (it = uld->passphrase->begin(); it != uld->passphrase->end(); ++it){
     lpass.append(*it);
   }
-  printf("%ls", lpass.c_str());
 
   usleep(MIN_UNLOCK_TIME_MS * 1000);
 
@@ -345,13 +344,23 @@ int main(int argc, char **args) {
         printf("xMouse: %i\tyMouse: %i\n", xMouse, yMouse);
         offsetYMouse = yMouse - (int)(HEIGHT - (keyboardHeight * keyboardPosition));
         tapped = getCharForCoordinates(xMouse, offsetYMouse);
-        if(tapped.compare("\n") == 0){
-          uld.passphrase = &passphrase;
-          SDL_CreateThread(unlock_crypt_dev, "unlock_crypt_dev", (void *)&uld);
-          continue;
-        }
-        if (tapped.compare("\0") != 0 && !unlock_running){
-          passphrase.push_back(tapped);
+        if (!unlock_running){
+          /* return pressed */
+          if(tapped.compare("\n") == 0){
+            uld.passphrase = &passphrase;
+            SDL_CreateThread(unlock_crypt_dev, "unlock_crypt_dev", (void *)&uld);
+            continue;
+          }
+          /* Backspace pressed */
+          else if (tapped.compare(KEYCAP_BACKSPACE) == 0){
+            passphrase.pop_back();
+            continue;
+          }
+          /* handle other key presses */
+          else if (tapped.compare("\0") != 0){
+            passphrase.push_back(tapped);
+            continue;
+          }
         }
         break;
       case SDL_TEXTINPUT:
