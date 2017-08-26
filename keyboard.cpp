@@ -149,7 +149,6 @@ string getCharForCoordinates(int x, int y) {
   for (vector<touchArea>::iterator it = keyList.begin(); it != keyList.end();
        ++it) {
     if(x > it->x1 && x < it->x2 && y > it->y1 && y < it->y2){
-      printf("%ls", it->keyChar);
       return it->keyChar;
     }
   }
