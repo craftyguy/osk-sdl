@@ -353,7 +353,9 @@ int main(int argc, char **args) {
           }
           /* Backspace pressed */
           else if (tapped.compare(KEYCAP_BACKSPACE) == 0){
-            passphrase.pop_back();
+            if (passphrase.size() > 0){
+              passphrase.pop_back();
+            }
             continue;
           }
           /* handle other key presses */
