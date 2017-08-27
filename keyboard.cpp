@@ -1,26 +1,124 @@
-#include "SDL2/SDL.h"
-#include "config.h"
 #include "keyboard.h"
-#include <SDL2/SDL_ttf.h>
-#include <string>
-#include <vector>
-#include <list>
-
 
 using namespace std;
 
-struct touchArea {
-  string keyChar;
-  int x1;
-  int x2;
-  int y1;
-  int y2;
-};
+Keyboard::Keyboard(int pos, int targetPos, int width,
+                   int height, int inputHeight, Config *config,
+                   SDL_Renderer *renderer){
 
-vector<touchArea> keyList;
+  this->keyboard = makeKeyboard(width, height, config);
+  this->keyboardTexture = SDL_CreateTextureFromSurface(renderer, keyboard);
+  this->position = pos;
+  this->targetPosition = targetPos;
+  this->keyboardWidth = width;
+  this->keyboardHeight = height;
+  this->inputHeight = inputHeight;
 
-void drawRow(SDL_Surface *surface, int x, int y, int width, int height,
-             list<string> *keys, int padding, TTF_Font *font) {
+}
+
+
+Keyboard::~Keyboard(){
+  delete this->keyboard;
+  this->keyboard = NULL;
+}
+
+
+float Keyboard::getPosition(){
+  return this->position;
+}
+
+
+void Keyboard::setPosition(float p){
+  this->position = p;
+  return;
+}
+
+
+float Keyboard::getTargetPosition(){
+  return this->targetPosition;
+}
+
+
+void Keyboard::setTargetPosition(float p){
+  this->targetPosition = p;
+  return;
+}
+
+
+int Keyboard::setKeyboardColor(int r, int g, int b){
+  this->keyboardColor.r = r;
+  this->keyboardColor.g = g;
+  this->keyboardColor.b = b;
+  return 0;
+}
+
+
+int Keyboard::setInputColor(int r, int g, int b){
+  this->inputColor.r = r;
+  this->inputColor.g = g;
+  this->inputColor.b = b;
+  return 0;
+}
+
+
+int Keyboard::setDotColor(int r, int g, int b){
+  this->dotColor.r = r;
+  this->dotColor.g = g;
+  this->dotColor.b = b;
+  return 0;
+}
+
+
+float Keyboard::getHeight(){
+  return this->keyboardHeight;
+}
+
+
+void Keyboard::draw(SDL_Renderer *renderer, int screenHeight, int numDots){
+  SDL_Rect keyboardRect, srcRect, inputRect;
+
+  if (this->position != this->targetPosition){
+    if (this->position > this->targetPosition){
+      this->position -= (this->position - this->targetPosition) / 10;
+    }else
+      this->position += (this->targetPosition - this->position) / 10;
+
+    keyboardRect.x = 0;
+    keyboardRect.y = (int)(screenHeight - (this->keyboardHeight * this->position));
+    keyboardRect.w = this->keyboardWidth;
+    keyboardRect.h = (int)(this->keyboardHeight * this->position);
+
+    srcRect.x = 0;
+    srcRect.y = 0;
+    srcRect.w = this->keyboardWidth;
+    srcRect.h = keyboardRect.h;
+
+    SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
+    SDL_RenderCopy(renderer, this->keyboardTexture, &srcRect, &keyboardRect);
+  }
+
+  // Draw empty password box
+  int topHalf = screenHeight - (this->keyboardHeight * this->position);
+  inputRect.x = this->keyboardWidth / 20;
+  inputRect.y = (topHalf / 2) - (this->inputHeight / 2);
+  inputRect.w = this->keyboardWidth * 0.9;
+  inputRect.h = this->inputHeight;
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  SDL_RenderFillRect(renderer, &inputRect);
+
+  // Draw password dots
+  int dotSize = this->keyboardWidth * 0.02;
+  for (int i = 0; i < numDots; i++) {
+    SDL_Point dotPos;
+    dotPos.x = (this->keyboardWidth / 10) + (i * dotSize * 3);
+    dotPos.y = (topHalf / 2);
+    draw_circle(renderer, dotPos, dotSize);
+  }
+  return;
+}
+
+
+void Keyboard::drawRow(SDL_Surface *surface, int x, int y, int width, int height, list<string> *keys, int padding, TTF_Font *font) {
 
   auto keyBackground = SDL_MapRGB(surface->format, 15, 15, 15);
   auto keyColor = SDL_MapRGB(surface->format, 200, 200, 200);
@@ -37,7 +135,7 @@ void drawRow(SDL_Surface *surface, int x, int y, int width, int height,
     SDL_FillRect(surface, &keyRect, keyBackground);
     SDL_Surface *textSurface;
 
-    keyList.push_back(
+    this->keyList.push_back(
         {*keyCap, x + (i * width), x + (i * width) + width, y, y + height});
 
     textSurface = TTF_RenderUTF8_Blended(font, keyCap->c_str(), textColor);
@@ -53,7 +151,8 @@ void drawRow(SDL_Surface *surface, int x, int y, int width, int height,
   }
 }
 
-void drawKey(SDL_Surface *surface, int x, int y, int width, int height, char *cap, string key, int padding, TTF_Font *font){
+
+void Keyboard::drawKey(SDL_Surface *surface, int x, int y, int width, int height, char *cap, string key, int padding, TTF_Font *font){
   auto keyBackground = SDL_MapRGB(surface->format, 15, 15, 15);
   auto keyColor = SDL_MapRGB(surface->format, 200, 200, 200);
   SDL_Color textColor = {255, 255, 255, 0};
@@ -66,7 +165,7 @@ void drawKey(SDL_Surface *surface, int x, int y, int width, int height, char *ca
   SDL_FillRect(surface, &keyRect, keyBackground);
   SDL_Surface *textSurface;
 
-  keyList.push_back({key, x, x + width, y, y + height});
+  this->keyList.push_back({key, x, x + width, y, y + height});
 
   textSurface = TTF_RenderText_Blended(font, cap, textColor);
 
@@ -78,7 +177,7 @@ void drawKey(SDL_Surface *surface, int x, int y, int width, int height, char *ca
   SDL_BlitSurface(textSurface, NULL, surface, &keyCapRect);
 }
 
-SDL_Surface *makeKeyboard(int width, int height, Config *config) {
+SDL_Surface *Keyboard::makeKeyboard(int width, int height, Config *config) {
   SDL_Surface *surface;
   Uint32 rmask, gmask, bmask, amask;
 
@@ -105,8 +204,8 @@ SDL_Surface *makeKeyboard(int width, int height, Config *config) {
     exit(1);
   }
 
-  auto keyboardColor = SDL_MapRGB(surface->format, 30, 30, 30);
-  SDL_FillRect(surface, NULL, keyboardColor);
+  SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, keyboardColor.r,
+                                         keyboardColor.g, keyboardColor.b));
 
   int rowHeight = height / 5;
   list<string> row1 {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
@@ -145,12 +244,27 @@ SDL_Surface *makeKeyboard(int width, int height, Config *config) {
   return surface;
 }
 
-string getCharForCoordinates(int x, int y) {
-  for (vector<touchArea>::iterator it = keyList.begin(); it != keyList.end();
+
+string Keyboard::getCharForCoordinates(int x, int y) {
+  for (vector<touchArea>::iterator it = this->keyList.begin(); it != this->keyList.end();
        ++it) {
     if(x > it->x1 && x < it->x2 && y > it->y1 && y < it->y2){
       return it->keyChar;
     }
   }
   return "\0";
+}
+
+
+void Keyboard::draw_circle(SDL_Renderer *renderer, SDL_Point center, int radius) {
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  for (int w = 0; w < radius * 2; w++) {
+    for (int h = 0; h < radius * 2; h++) {
+      int dx = radius - w; // horizontal offset
+      int dy = radius - h; // vertical offset
+      if ((dx * dx + dy * dy) <= (radius * radius)) {
+        SDL_RenderDrawPoint(renderer, center.x + dx, center.y + dy);
+      }
+    }
+  }
 }
