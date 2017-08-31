@@ -50,7 +50,7 @@ int main(int argc, char **args) {
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS |
                SDL_INIT_TIMER ) < 0) {
-    SDL_Log("SDL_Init failed: %s", SDL_GetError());
+    SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SDL_Init failed: %s", SDL_GetError());
     SDL_Quit();
     exit(1);
   }
@@ -60,7 +60,7 @@ int main(int argc, char **args) {
     // in test mode.
     SDL_DisplayMode mode = { SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
     if(SDL_GetDisplayMode(0, 0, &mode) != 0){
-      SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+      SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "SDL_GetDisplayMode failed: %s", SDL_GetError());
       SDL_Quit();
       exit(1);
     }
@@ -91,7 +91,7 @@ int main(int argc, char **args) {
   renderer = SDL_CreateRenderer(display, -1, SDL_RENDERER_SOFTWARE);
 
   if (renderer == NULL) {
-    fprintf(stderr, "ERROR: Could not create renderer: %s\n", SDL_GetError());
+    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: Could not create renderer: %s\n", SDL_GetError());
     SDL_Quit();
     exit(1);
   }
@@ -99,7 +99,7 @@ int main(int argc, char **args) {
   screen = SDL_GetWindowSurface(display);
 
   if (screen == NULL) {
-    fprintf(stderr, "ERROR: Could not get window surface: %s\n", SDL_GetError());
+    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: Could not get window surface: %s\n", SDL_GetError());
     SDL_Quit();
     exit(1);
   }
@@ -114,7 +114,7 @@ int main(int argc, char **args) {
   auto backgroundColor = SDL_MapRGB(screen->format, 255, 128, 0);
 
   if (SDL_FillRect(screen, NULL, backgroundColor) != 0) {
-    fprintf(stderr, "ERROR: Could not fill background color: %s\n", SDL_GetError());
+    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: Could not fill background color: %s\n", SDL_GetError());
     SDL_Quit();
     exit(1);
   }
