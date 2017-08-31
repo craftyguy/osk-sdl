@@ -48,8 +48,8 @@ int main(int argc, char **args) {
 
   SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
 
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_EVENTS |
-               SDL_INIT_TIMER | SDL_INIT_HAPTIC | SDL_INIT_GAMECONTROLLER) < 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS |
+               SDL_INIT_TIMER ) < 0) {
     SDL_Log("SDL_Init failed: %s", SDL_GetError());
     SDL_Quit();
     exit(1);
