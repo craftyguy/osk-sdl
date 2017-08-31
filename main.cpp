@@ -160,7 +160,7 @@ int main(int argc, char **args) {
         prev_keydown_ticks = cur_ticks;
         switch (event.key.keysym.sym) {
         case SDLK_RETURN:
-          if (passphrase.size() > 0 && luksDev->unlockRunning()){
+          if (passphrase.size() > 0 && !luksDev->unlockRunning()){
             luksDev->setPassphrase(strList2str(passphrase));
             luksDev->unlock();
           }
