@@ -4,6 +4,7 @@
 #include <string>
 #include <list>
 #include "config.h"
+#include <math.h>
 
 
 using namespace std;
@@ -77,4 +78,4 @@ void draw_circle(SDL_Renderer *renderer, SDL_Point center, int radius);
 */
 void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
                        int screenWidth, int inputHeight, int keyboardHeight,
-                       float keyboardPos);
+                       float keyboardPos, bool busy);
