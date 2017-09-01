@@ -77,12 +77,10 @@ void draw_circle(SDL_Renderer *renderer, SDL_Point center, int radius);
   @param screenHeight Height of overall screen
   @param screenWidth Width of overall screen
   @param inputHeight Height of input box
-  @param keyboardHeight Height of associated keyboard
-  @param keyboardPos Position of associated keyboard, between 0 (0%) and 1 (100%)
+  @param y Vertical position of the input box
 */
 void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
-                       int screenWidth, int inputHeight, int keyboardHeight,
-                       float keyboardPos, bool busy);
+                       int screenWidth, int inputHeight, int y, bool busy);
 
 /**
   Handle keypresses for virtual keyboard

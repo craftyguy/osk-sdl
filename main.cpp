@@ -8,6 +8,7 @@
 #include "luksdevice.h"
 #include "config.h"
 #include "util.h"
+#include "tooltip.h"
 
 
 #define TICK_INTERVAL 16
@@ -128,6 +129,11 @@ int main(int argc, char **args) {
     exit(1);
   }
 
+  // Initialize tooltip for password error
+  string ErrorText ="The password is incorrect";
+  Tooltip *tooltip = new Tooltip(WIDTH*0.9, inputHeight, &config);
+  tooltip->init(renderer, ErrorText);
+
   next_time = SDL_GetTicks() + TICK_INTERVAL;
 
   // Disable mouse cursor if not in testmode
@@ -143,6 +149,9 @@ int main(int argc, char **args) {
   SDL_Texture* wallpaperTexture = SDL_CreateTextureFromSurface(renderer, wallpaper);
 
   string tapped;
+
+  bool showPasswordError = false;
+  int lastUnlockingState = false;
 
   while (luksDev->isLocked()) {
     SDL_RenderCopy(renderer, wallpaperTexture, NULL, NULL);
@@ -165,6 +174,7 @@ int main(int argc, char **args) {
           }
           break;
         case SDLK_BACKSPACE:
+          showPasswordError = false;
           if (passphrase.size() > 0 && !luksDev->unlockRunning()){
               passphrase.pop_back();
               continue;
@@ -184,6 +194,7 @@ int main(int argc, char **args) {
         printf("xTouch: %i\tyTouch: %i\n", xTouch, yTouch);
         offsetYTouch = yTouch - (int)(HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
         tapped = keyboard->getCharForCoordinates(xTouch, offsetYTouch);
+        showPasswordError = false;
         if (!luksDev->unlockRunning()){
           handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
         }
@@ -195,6 +206,7 @@ int main(int argc, char **args) {
         printf("xMouse: %i\tyMouse: %i\n", xMouse, yMouse);
         offsetYMouse = yMouse - (int)(HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
         tapped = keyboard->getCharForCoordinates(xMouse, offsetYMouse);
+        showPasswordError = false;
         if (!luksDev->unlockRunning()){
           handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
         }
@@ -212,6 +224,7 @@ int main(int argc, char **args) {
             passphrase.push_back(event.text.text);
           }
         }
+        showPasswordError = false;
         break;
       }
     }
@@ -220,8 +233,31 @@ int main(int argc, char **args) {
 
     keyboard->draw(renderer, HEIGHT);
 
+    if(lastUnlockingState != luksDev->unlockRunning()){
+      if(luksDev->unlockRunning() == false && luksDev->isLocked()){
+        // Luks is finished and the password was wrong
+        showPasswordError = true;
+        passphrase.clear();
+      }
+      lastUnlockingState = luksDev->unlockRunning();
+    }
+
+    int topHalf = (HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
+    int passwordPosition;
+    int tooltipPosition;
+    if(showPasswordError){
+      passwordPosition = topHalf / 3 * 2;
+      tooltipPosition = topHalf / 3;
+    }else{
+      passwordPosition = topHalf / 2;
+    }
+
     draw_password_box(renderer, passphrase.size(), HEIGHT, WIDTH, inputHeight,
-                      keyboard->getHeight(), keyboard->getPosition(), luksDev->unlockRunning());
+                      passwordPosition, luksDev->unlockRunning());
+
+    if(showPasswordError){
+      tooltip->draw(renderer, WIDTH/20, tooltipPosition);
+    }
 
     SDL_Delay(time_left(SDL_GetTicks(), next_time));
     next_time += TICK_INTERVAL;

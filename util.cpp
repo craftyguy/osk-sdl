@@ -109,14 +109,12 @@ void draw_circle(SDL_Renderer *renderer, SDL_Point center, int radius) {
 
 
 void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
-                       int screenWidth, int inputHeight, int keyboardHeight,
-                       float keyboardPos, bool busy){
+                       int screenWidth, int inputHeight, int y, bool busy){
 
   SDL_Rect inputRect;
   // Draw empty password box
-  int topHalf = screenHeight - (keyboardHeight * keyboardPos);
   inputRect.x = screenWidth / 20;
-  inputRect.y = (topHalf / 2) - (inputHeight / 2);
+  inputRect.y = y;
   inputRect.w = screenWidth * 0.9;
   inputRect.h = inputHeight;
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -124,7 +122,7 @@ void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
 
 
   int deflection = inputHeight / 4;
-  int ypos = topHalf / 2;
+  int ypos = y + inputHeight / 2;
   float tick = (float) SDL_GetTicks();
   // Draw password dots
   int dotSize = screenWidth * 0.02;
