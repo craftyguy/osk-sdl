@@ -142,7 +142,6 @@ int main(int argc, char **args) {
   SDL_Surface* wallpaper = make_wallpaper(renderer, &config, WIDTH, HEIGHT);
   SDL_Texture* wallpaperTexture = SDL_CreateTextureFromSurface(renderer, wallpaper);
 
-  int offsetYMouse;
   string tapped;
 
   while (luksDev->isLocked()) {
@@ -161,7 +160,7 @@ int main(int argc, char **args) {
         switch (event.key.keysym.sym) {
         case SDLK_RETURN:
           if (passphrase.size() > 0 && !luksDev->unlockRunning()){
-            luksDev->setPassphrase(strList2str(passphrase));
+            luksDev->setPassphrase(strList2str(&passphrase));
             luksDev->unlock();
           }
           break;
@@ -176,51 +175,31 @@ int main(int argc, char **args) {
           break;
         }
         break;
-      // handle the mouse/touchscreen
+      // handle touchscreen
+      case SDL_FINGERUP:
+        unsigned int xTouch, yTouch, offsetYTouch;
+        // x and y values are normalized!
+        xTouch = event.button.x * WIDTH;
+        yTouch = event.button.y * HEIGHT;
+        printf("xTouch: %i\tyTouch: %i\n", xTouch, yTouch);
+        offsetYTouch = yTouch - (int)(HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
+        tapped = keyboard->getCharForCoordinates(xTouch, offsetYTouch);
+        if (!luksDev->unlockRunning()){
+          handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
+        }
+      // handle the mouse
       case SDL_MOUSEBUTTONUP:
-        unsigned int xMouse, yMouse;
+        unsigned int xMouse, yMouse, offsetYMouse;
         xMouse = event.button.x;
         yMouse = event.button.y;
         printf("xMouse: %i\tyMouse: %i\n", xMouse, yMouse);
         offsetYMouse = yMouse - (int)(HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
         tapped = keyboard->getCharForCoordinates(xMouse, offsetYMouse);
         if (!luksDev->unlockRunning()){
-          // return pressed
-          if(tapped.compare("\n") == 0){
-            luksDev->setPassphrase(strList2str(passphrase));
-            luksDev->unlock();
-            continue;
-          }
-          // Backspace pressed
-          else if (tapped.compare(KEYCAP_BACKSPACE) == 0){
-            if (passphrase.size() > 0){
-              passphrase.pop_back();
-            }
-            continue;
-          }
-          // Shift pressed
-          else if (tapped.compare(KEYCAP_SHIFT) == 0){
-            if (keyboard->getActiveLayer() > 1){
-              keyboard->setActiveLayer(0);
-            }else{
-              keyboard->setActiveLayer(!keyboard->getActiveLayer());
-            }
-          }
-          // Symbols key pressed
-          else if (tapped.compare(KEYCAP_SYMBOLS) == 0){
-            keyboard->setActiveLayer(2);
-          }
-          // ABC key was pressed
-          else if (tapped.compare(KEYCAP_ABC) == 0){
-            keyboard->setActiveLayer(0);
-          }
-          // handle other key presses
-          else if (tapped.compare("\0") != 0){
-            passphrase.push_back(tapped);
-            continue;
-          }
+          handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
         }
         break;
+      // handle physical keyboard
       case SDL_TEXTINPUT:
         /*
          * Only register text input if time since last text input has exceeded
@@ -242,7 +221,7 @@ int main(int argc, char **args) {
     keyboard->draw(renderer, HEIGHT);
 
     draw_password_box(renderer, passphrase.size(), HEIGHT, WIDTH, inputHeight,
-                       keyboard->getHeight(), keyboard->getPosition());
+                      keyboard->getHeight(), keyboard->getPosition());
 
     SDL_Delay(time_left(SDL_GetTicks(), next_time));
     next_time += TICK_INTERVAL;

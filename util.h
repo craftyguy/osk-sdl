@@ -1,9 +1,13 @@
+#ifndef UTIL_H
+#define UTIL_H
 #include "SDL2/SDL.h"
 #include <unistd.h>
 #include <iostream>
 #include <string>
 #include <list>
 #include "config.h"
+#include "keyboard.h"
+#include "luksdevice.h"
 
 
 using namespace std;
@@ -44,7 +48,7 @@ Uint32 time_left(Uint32 now, Uint32 next_time);
   @param strList List of strings
   @return String with all elements of strList concatenated together
 */
-string strList2str(list<string> strList);
+string strList2str(const list<string> *strList);
 
 /**
   Create wallpaper
@@ -78,3 +82,15 @@ void draw_circle(SDL_Renderer *renderer, SDL_Point center, int radius);
 void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
                        int screenWidth, int inputHeight, int keyboardHeight,
                        float keyboardPos);
+
+/**
+  Handle keypresses for virtual keyboard
+  @param tapped Character tapped on keyboard
+  @param kbd Initialized Keyboard obj
+  @param lkd Initialized LuksDevice obj
+  @param lkd passphrase Passphrase to modify
+*/
+void handleVirtualKeyPress(string tapped, Keyboard *kbd, LuksDevice *lkd,
+                           list<string> *passphrase);
+
+#endif

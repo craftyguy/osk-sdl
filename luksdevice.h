@@ -1,3 +1,5 @@
+#ifndef LUKSDEVICE_H
+#define LUKSDEVICE_H
 #include "SDL2/SDL_thread.h"
 #include <libcryptsetup.h>
 #include <iostream>
@@ -58,3 +60,4 @@ class LuksDevice{
     static int unlock(void *luksDev);
 
 };
+#endif

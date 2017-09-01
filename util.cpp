@@ -46,10 +46,10 @@ Uint32 time_left(Uint32 now, Uint32 next_time) {
 }
 
 
-string strList2str(list<string> strList){
+string strList2str(const list<string> *strList){
   string str = "";
   list<string>::const_iterator it;
-  for (it = strList.begin(); it != strList.end(); ++it){
+  for (it = strList->begin(); it != strList->end(); ++it){
     str.append(*it);
   }
   return str;
@@ -107,6 +107,7 @@ void draw_circle(SDL_Renderer *renderer, SDL_Point center, int radius) {
   }
 }
 
+
 void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
                        int screenWidth, int inputHeight, int keyboardHeight,
                        float keyboardPos){
@@ -128,6 +129,43 @@ void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
     dotPos.x = (screenWidth / 10) + (i * dotSize * 3);
     dotPos.y = (topHalf / 2);
     draw_circle(renderer, dotPos, dotSize);
+  }
+  return;
+}
+
+
+void handleVirtualKeyPress(string tapped, Keyboard *kbd, LuksDevice *lkd,
+                           list<string> *passphrase){
+  // return pressed
+  if(tapped.compare("\n") == 0){
+    lkd->setPassphrase(strList2str(passphrase));
+    lkd->unlock();
+  }
+  // Backspace pressed
+  else if (tapped.compare(KEYCAP_BACKSPACE) == 0){
+    if (passphrase->size() > 0){
+      passphrase->pop_back();
+    }
+  }
+  // Shift pressed
+  else if (tapped.compare(KEYCAP_SHIFT) == 0){
+    if (kbd->getActiveLayer() > 1){
+      kbd->setActiveLayer(0);
+    }else{
+      kbd->setActiveLayer(!kbd->getActiveLayer());
+    }
+  }
+  // Symbols key pressed
+  else if (tapped.compare(KEYCAP_SYMBOLS) == 0){
+    kbd->setActiveLayer(2);
+  }
+  // ABC key was pressed
+  else if (tapped.compare(KEYCAP_ABC) == 0){
+    kbd->setActiveLayer(0);
+  }
+  // handle other key presses
+  else if (tapped.compare("\0") != 0){
+    passphrase->push_back(tapped);
   }
   return;
 }
