@@ -221,7 +221,7 @@ int main(int argc, char **args) {
     keyboard->draw(renderer, HEIGHT);
 
     draw_password_box(renderer, passphrase.size(), HEIGHT, WIDTH, inputHeight,
-                      keyboard->getHeight(), keyboard->getPosition());
+                      keyboard->getHeight(), keyboard->getPosition(), luksDev->unlockRunning());
 
     SDL_Delay(time_left(SDL_GetTicks(), next_time));
     next_time += TICK_INTERVAL;
