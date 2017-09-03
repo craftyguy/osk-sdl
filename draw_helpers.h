@@ -4,7 +4,7 @@
 #include "luksdevice.h"
 #include <functional>
 
-const float  BEZIER_RESOLUTION = 50;
+const float  BEZIER_RESOLUTION = 100;
 
 /**
   Curve the corneres of a rectangle

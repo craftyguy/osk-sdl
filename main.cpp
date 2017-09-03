@@ -145,8 +145,8 @@ int main(int argc, char **args) {
 
   string tapped;
   long inputBoxRadius = strtol(config.inputBoxRadius.c_str(),NULL,10);
-  if(inputBoxRadius >= BEZIER_RESOLUTION){
-    fprintf(stderr,"the radius must be below %f, inputbox-radius was %ld\n",BEZIER_RESOLUTION,inputBoxRadius);
+  if(inputBoxRadius >= BEZIER_RESOLUTION || inputBoxRadius > inputHeight/1.5){
+    fprintf(stderr,"inputbox-radius must be below %f and %f, it is %ld\n",BEZIER_RESOLUTION,inputHeight/1.5,inputBoxRadius);
     inputBoxRadius = 0;
   }
   argb wallpaperColor;

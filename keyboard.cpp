@@ -27,8 +27,8 @@ int Keyboard::init(SDL_Renderer *renderer){
 
   loadKeymap("");
   long keyLong = strtol(config->keyRadius.c_str(),NULL,10);
-  if(keyLong >= BEZIER_RESOLUTION){
-    fprintf(stderr,"the radius must be below %f, key-radius was %ld\n",BEZIER_RESOLUTION,keyLong);
+  if(keyLong >= BEZIER_RESOLUTION || keyLong > (keyboardHeight/5)/1.5){
+    fprintf(stderr,"key-radius must be below %f and %f, it is %ld\n",BEZIER_RESOLUTION,(keyboardHeight/5)/1.5,keyLong);
     keyRadius = 0;
   }else{
     keyRadius = keyLong;
