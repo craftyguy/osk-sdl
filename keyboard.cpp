@@ -11,6 +11,7 @@ Keyboard::Keyboard(int pos, int targetPos, int width,
   this->keyboardHeight = height;
   this->activeLayer = 0;
   this->config = config;
+  this->keyRadius = atoi(config->keyRadius.c_str());
 }
 
 
@@ -121,12 +122,8 @@ void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x,
   auto keyBackground = SDL_MapRGB(surface->format, 15, 15, 15);
   SDL_Color textColor = {255, 255, 255, 0};
 
+  auto background = SDL_MapRGB(surface->format,keyboardColor.r ,keyboardColor.g, keyboardColor.b);
   int i = 0;
-  argb backgroundColor;
-  backgroundColor.r = keyboardColor.r;
-  backgroundColor.g = keyboardColor.g;
-  backgroundColor.b = keyboardColor.b;
-  backgroundColor.a = 255;
   list<string>::const_iterator keyCap;
   for (keyCap = keys->begin(); keyCap != keys->end(); ++keyCap) {
     SDL_Rect keyRect;
@@ -135,6 +132,9 @@ void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x,
     keyRect.w = width - (2 * padding);
     keyRect.h = height - (2 * padding);
     SDL_FillRect(surface, &keyRect, keyBackground);
+    if(keyRadius > 0){
+      smooth_corners_surface(surface,background,&keyRect,keyRadius);
+    }
     SDL_Surface *textSurface;
     keyList->push_back(
         {*keyCap, x + (i * width), x + (i * width) + width, y, y + height});

@@ -101,7 +101,22 @@ void handleVirtualKeyPress(string tapped, Keyboard *kbd, LuksDevice *lkd,
 */
 void smooth_corners(SDL_Rect *rect, int radius,function<void(int,int)> draw_cb);
 
-void smooth_corners_surface(SDL_Surface*surface,argb*color,SDL_Rect*rect,int radius);
+/**
+  Draw rounded corneres for a rectangle directly onto a surface
+  @param surface the surface to draw on
+  @param color the color to draw
+  @param rect the rectange to smooth
+  @param radius the distance from a corner where the curve will start
+*/
+void smooth_corners_surface(SDL_Surface*surface,Uint32 color,SDL_Rect*rect,int radius);
+
+/**
+  Draw rounded corneres for a rectangle with a renderer
+  @param renderer the renderer to draw on
+  @param color the color to draw
+  @param rect the rectange to smooth
+  @param radius the distance from a corner where the curve will start
+*/
 void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int radius);
 
 #endif

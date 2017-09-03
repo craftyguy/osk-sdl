@@ -43,6 +43,15 @@ bool Config::Read(string path) {
     Config::keyboardMap = Config::options["keyboard-map"];
   }
 
+  it = Config::options.find("key-radius");
+  if (it != Config::options.end()) {
+    Config::keyRadius = Config::options["key-radius"];
+  }
+
+  it = Config::options.find("inputbox-radius");
+  if (it != Config::options.end()) {
+    Config::inputBoxRadius = Config::options["inputbox-radius"];
+  }
   return true;
 }
 

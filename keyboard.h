@@ -132,6 +132,7 @@ class Keyboard {
     rgb keyboardColor;
     rgb inputColor;
     rgb dotColor;
+    int keyRadius;
     float position;
     float targetPosition;
     int keyboardWidth;

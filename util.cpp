@@ -228,12 +228,11 @@ void smooth_corners(SDL_Rect *rect, int radius,function<void(int,int)> draw_cb){
     }
     free(corner);
 }
-void smooth_corners_surface(SDL_Surface*surface,argb*color,SDL_Rect*rect,int radius){
-  Uint32 mappedColor = SDL_MapRGBA(surface->format,color->r,color->g,color->b,color->a);
+void smooth_corners_surface(SDL_Surface*surface,Uint32 color,SDL_Rect*rect,int radius){
   smooth_corners(rect,radius,[&](int x,int y)void{
     Uint8 * pixel = (Uint8*)surface->pixels;
     pixel += (y * surface->pitch) + (x * sizeof(Uint32));
-    *((Uint32*)pixel) = mappedColor;
+    *((Uint32*)pixel) = color;
     });
 }
 void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int radius){
