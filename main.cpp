@@ -143,7 +143,14 @@ int main(int argc, char **args) {
   SDL_Texture* wallpaperTexture = SDL_CreateTextureFromSurface(renderer, wallpaper);
 
   string tapped;
-
+  int inputBoxRadius = atoi(config.inputBoxRadius.c_str());
+  argb wallpaperColor;
+  wallpaperColor.a = 255;
+  if(sscanf(config.wallpaper.c_str(), "#%02x%02x%02x", &wallpaperColor.r, &wallpaperColor.g, &wallpaperColor.b)!=3){
+      fprintf(stderr, "Could not parse color code %s\n", config.wallpaper.c_str());
+      exit(1);
+    }
+  SDL_Rect inputRect;
   while (luksDev->isLocked()) {
     SDL_RenderCopy(renderer, wallpaperTexture, NULL, NULL);
     while (SDL_PollEvent(&event)) {
@@ -220,10 +227,16 @@ int main(int argc, char **args) {
     keyboard->setTargetPosition(!luksDev->unlockRunning());
 
     keyboard->draw(renderer, HEIGHT);
-
     draw_password_box(renderer, passphrase.size(), HEIGHT, WIDTH, inputHeight,
                       keyboard->getHeight(), keyboard->getPosition(), luksDev->unlockRunning());
-
+    if(inputBoxRadius > 0){
+      int topHalf = HEIGHT - (keyboard->getHeight() * keyboard->getPosition());
+      inputRect.x = WIDTH / 20;
+      inputRect.y = (topHalf / 2) - (inputHeight / 2);
+      inputRect.w = WIDTH * 0.9;
+      inputRect.h = inputHeight;
+      smooth_corners_renderer(renderer,&wallpaperColor,&inputRect,inputBoxRadius);
+    }
     SDL_Delay(time_left(SDL_GetTicks(), next_time));
     next_time += TICK_INTERVAL;
     // Update
