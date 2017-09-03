@@ -1,5 +1,5 @@
 #include "keyboard.h"
-
+#include "util.h"
 using namespace std;
 
 Keyboard::Keyboard(int pos, int targetPos, int width,
@@ -122,6 +122,11 @@ void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x,
   SDL_Color textColor = {255, 255, 255, 0};
 
   int i = 0;
+  argb backgroundColor;
+  backgroundColor.r = keyboardColor.r;
+  backgroundColor.g = keyboardColor.g;
+  backgroundColor.b = keyboardColor.b;
+  backgroundColor.a = 255;
   list<string>::const_iterator keyCap;
   for (keyCap = keys->begin(); keyCap != keys->end(); ++keyCap) {
     SDL_Rect keyRect;
@@ -131,7 +136,6 @@ void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x,
     keyRect.h = height - (2 * padding);
     SDL_FillRect(surface, &keyRect, keyBackground);
     SDL_Surface *textSurface;
-
     keyList->push_back(
         {*keyCap, x + (i * width), x + (i * width) + width, y, y + height});
 
