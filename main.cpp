@@ -8,6 +8,7 @@
 #include "luksdevice.h"
 #include "config.h"
 #include "util.h"
+#include "draw_helpers.h"
 
 
 #define TICK_INTERVAL 16
@@ -143,7 +144,11 @@ int main(int argc, char **args) {
   SDL_Texture* wallpaperTexture = SDL_CreateTextureFromSurface(renderer, wallpaper);
 
   string tapped;
-  int inputBoxRadius = atoi(config.inputBoxRadius.c_str());
+  long inputBoxRadius = strtol(config.inputBoxRadius.c_str(),NULL,10);
+  if(inputBoxRadius >= BEZIER_RESOLUTION){
+    fprintf(stderr,"the radius must be below %f, inputbox-radius was %ld\n",BEZIER_RESOLUTION,inputBoxRadius);
+    inputBoxRadius = 0;
+  }
   argb wallpaperColor;
   wallpaperColor.a = 255;
   if(sscanf(config.wallpaper.c_str(), "#%02x%02x%02x", &wallpaperColor.r, &wallpaperColor.g, &wallpaperColor.b)!=3){

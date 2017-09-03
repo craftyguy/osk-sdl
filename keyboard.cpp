@@ -1,5 +1,5 @@
 #include "keyboard.h"
-#include "util.h"
+#include "draw_helpers.h"
 using namespace std;
 
 Keyboard::Keyboard(int pos, int targetPos, int width,
@@ -11,7 +11,6 @@ Keyboard::Keyboard(int pos, int targetPos, int width,
   this->keyboardHeight = height;
   this->activeLayer = 0;
   this->config = config;
-  this->keyRadius = atoi(config->keyRadius.c_str());
 }
 
 
@@ -27,7 +26,13 @@ int Keyboard::init(SDL_Renderer *renderer){
   list<KeyboardLayer>::iterator layer;
 
   loadKeymap("");
-
+  long keyLong = strtol(config->keyRadius.c_str(),NULL,10);
+  if(keyLong >= BEZIER_RESOLUTION){
+    fprintf(stderr,"the radius must be below %f, key-radius was %ld\n",BEZIER_RESOLUTION,keyLong);
+    keyRadius = 0;
+  }else{
+    keyRadius = keyLong;
+  }
   for (layer = this->keyboard.begin(); layer != this->keyboard.end(); ++layer){
     (*layer).surface = makeKeyboard(&(*layer));
     if (!(*layer).surface){

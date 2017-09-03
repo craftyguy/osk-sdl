@@ -17,7 +17,6 @@ using namespace std;
 const string DEFAULT_LUKSDEVPATH = "/home/user/disk";
 const string DEFAULT_LUKSDEVNAME = "root";
 const string DEFAULT_CONFPATH = "/etc/osk.conf";
-const float  BEZIER_RESOLUTION = 50;
 
 struct Opts{
   string luksDevPath;
@@ -93,30 +92,5 @@ void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
 */
 void handleVirtualKeyPress(string tapped, Keyboard *kbd, LuksDevice *lkd,
                            list<string> *passphrase);
-/**
-  Curve the corneres of a rectange
-  @param rect the rectange to smooth
-  @param radius the distance from a corner where the curve will start
-  @param draw_cb callback, with coordinates to the next pixel to draw
-*/
-void smooth_corners(SDL_Rect *rect, int radius,function<void(int,int)> draw_cb);
-
-/**
-  Draw rounded corneres for a rectangle directly onto a surface
-  @param surface the surface to draw on
-  @param color the color to draw
-  @param rect the rectange to smooth
-  @param radius the distance from a corner where the curve will start
-*/
-void smooth_corners_surface(SDL_Surface*surface,Uint32 color,SDL_Rect*rect,int radius);
-
-/**
-  Draw rounded corneres for a rectangle with a renderer
-  @param renderer the renderer to draw on
-  @param color the color to draw
-  @param rect the rectange to smooth
-  @param radius the distance from a corner where the curve will start
-*/
-void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int radius);
 
 #endif
