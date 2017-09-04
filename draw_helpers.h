@@ -38,7 +38,7 @@ void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int 
   @param p1 the first point
   @param p2 the second point
   @param p3 the third point
-  @returns an array of pixel coordinates (length equal to BREZIER_RESOLUTION)
+  @returns an array of pixel coordinates (length equal to BEZIER_RESOLUTION)
 */
 SDL_Point* bezier_corner (SDL_Point*offset,SDL_Point *p1, SDL_Point *p2, SDL_Point *p3);
 #endif

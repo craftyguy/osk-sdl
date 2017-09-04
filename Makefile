@@ -8,7 +8,7 @@ DEPS = keyboard.h config.h luksdevice.h util.h draw_helpers.h
 %.o: %.cpp $(DEPS)
 	$(CXX) -c -o $@ $< $(CXXFLAGS)
 
-osk-sdl: main.o keyboard.o config.o util.o luksdevice.o
+osk-sdl: main.o keyboard.o config.o util.o luksdevice.o draw_helpers.o
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
 
 .PHONY: clean
