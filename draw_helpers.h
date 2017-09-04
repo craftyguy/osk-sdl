@@ -48,4 +48,14 @@ SDL_Point* bezier_corner (SDL_Point*offset,SDL_Point *p1, SDL_Point *p2, SDL_Poi
   @param rect the "w" and "h" properties are the size to scale to, "x" and "y" are ignored
 */
 SDL_Surface* scale_surface(SDL_Surface* surface, SDL_Rect* rect);
+
+/**
+  Draw rounded corneres for a rectangle with a renderer, instead of drawing with a signle color, get each pixel from an array
+  @param renderer the renderer to draw on
+  @param pixels the array of pixels to draw from
+  @param w the width of pixels
+  @param h the height of pixels
+  @param radius the distance from a corner where the curve will start
+*/
+void smooth_corners_renderer_to_image(SDL_Renderer*renderer,Uint8*pixels,int w, int h,SDL_Rect*rect,int radius);
 #endif

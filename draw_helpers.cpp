@@ -64,6 +64,15 @@ void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int 
       SDL_RenderDrawPoint(renderer,x,y);
     });
 }
+void smooth_corners_renderer_to_image(SDL_Renderer*renderer,Uint8*pixels,int w,int h,SDL_Rect*rect,int radius){
+  smooth_corners(rect,radius,[&](int x,int y){
+    if(x < w && y < h) {
+      SDL_SetRenderDrawColor(renderer,pixels[4 * (w * y + x)],pixels[4 * (w * y + x)+1],
+        pixels[4 * (w * y + x)+2],pixels[4 * (w * y + x)+3]);
+      SDL_RenderDrawPoint(renderer,x,y);
+    }
+  });
+}
 SDL_Surface* scale_surface(SDL_Surface* surface, SDL_Rect* rect){
   if(rect == NULL || surface == NULL || rect->w == 0 || rect->h == 0){
     return NULL;

@@ -86,12 +86,17 @@ SDL_Surface* make_wallpaper(SDL_Renderer *renderer, Config *config,
     }
     SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, r, g, b));
   }else{
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
     SDL_Surface*img = SDL_LoadBMP(config->wallpaper.c_str());
+    if(img == NULL){
+      fprintf(stderr,"Unable to open image, %s\n",IMG_GetError());
+      return surface;
+    }
     if( !(img->h % height) && !(img->w % width)){
       surface = img;
     }else{
       double factor = 1.0;
-      if(config->allowMargins.size() > 0 && config->allowMargins[0] == 't' || config->allowMargins[0] == 'T'){ 
+      if(config->allowMargins.size() > 0 && (config->allowMargins[0] == 'f' || config->allowMargins[0] == 'F')){ 
         if((img->h % height) >= (img->w % width)){
           factor = ((double)width/(double)img->w);
         }else{
@@ -104,7 +109,7 @@ SDL_Surface* make_wallpaper(SDL_Renderer *renderer, Config *config,
           factor = ((double)height/(double)img->h);
         }
       }
-      SDL_Rect img_size = {0,0,(double)img->w * factor,(double)img->h * factor};
+      SDL_Rect img_size = {0,0,(int)(img->w * factor),(int)(img->h * factor)};
       SDL_Surface * scaled = scale_surface(img,&img_size );
       if(!scaled){
         fprintf(stderr,"unable scale image, error: %s\n",SDL_GetError());

@@ -48,7 +48,6 @@ int main(int argc, char **args) {
   LuksDevice *luksDev = new LuksDevice(opts.luksDevName, opts.luksDevPath);
 
   SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
-
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS |
                SDL_INIT_TIMER | SDL_INIT_JOYSTICK) < 0) {
     SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SDL_Init failed: %s", SDL_GetError());
@@ -139,7 +138,6 @@ int main(int argc, char **args) {
 
   // Make SDL send text editing events for textboxes
   SDL_StartTextInput();
-
   SDL_Surface* wallpaper = make_wallpaper(renderer, &config, WIDTH, HEIGHT);
   SDL_Texture* wallpaperTexture = SDL_CreateTextureFromSurface(renderer, wallpaper);
 
@@ -149,14 +147,10 @@ int main(int argc, char **args) {
     fprintf(stderr,"inputbox-radius must be below %f and %f, it is %ld\n",BEZIER_RESOLUTION,inputHeight/1.5,inputBoxRadius);
     inputBoxRadius = 0;
   }
-  argb wallpaperColor;
-  wallpaperColor.a = 255;
-  if(sscanf(config.wallpaper.c_str(), "#%02x%02x%02x", &wallpaperColor.r, &wallpaperColor.g, &wallpaperColor.b)!=3){
-      fprintf(stderr, "Could not parse color code %s\n", config.wallpaper.c_str());
-      //to avoid akward colors just remove the radius
-      inputBoxRadius = 0;
-  }
+
   SDL_Rect inputRect;
+  
+  Uint8 * backgroundPixels = (Uint8*)wallpaper->pixels; 
   while (luksDev->isLocked()) {
     SDL_RenderCopy(renderer, wallpaperTexture, NULL, NULL);
     while (SDL_PollEvent(&event)) {
@@ -241,7 +235,7 @@ int main(int argc, char **args) {
       inputRect.y = (topHalf / 2) - (inputHeight / 2);
       inputRect.w = WIDTH * 0.9;
       inputRect.h = inputHeight;
-      smooth_corners_renderer(renderer,&wallpaperColor,&inputRect,inputBoxRadius);
+      smooth_corners_renderer_to_image(renderer,backgroundPixels,WIDTH,HEIGHT,&inputRect,inputBoxRadius);
     }
     SDL_Delay(time_left(SDL_GetTicks(), next_time));
     next_time += TICK_INTERVAL;
