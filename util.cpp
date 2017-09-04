@@ -20,7 +20,7 @@ int fetchOpts(int argc, char **args, Opts *opts){
       opts->confPath = optarg;
       break;
     default:
-      fprintf(stdout, "Usage: osk_mouse [-t] [-d /dev/sda] [-n device_name] [-c /etc/osk.conf]\n");
+      fprintf(stdout, "Usage: osk-sdl [-t] [-d /dev/sda] [-n device_name] [-c /etc/osk.conf]\n");
       return 1;
     }
   if (opts->luksDevPath.empty()) {

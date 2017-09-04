@@ -148,7 +148,7 @@ void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x,
 
     SDL_Rect keyCapRect;
     keyCapRect.x = keyRect.x + ((keyRect.w / 2) - (textSurface->w / 2));
-    keyCapRect.y = keyRect.y;
+    keyCapRect.y = keyRect.y + ((keyRect.h / 2) - (textSurface->h / 2));
     keyCapRect.w = keyRect.w;
     keyCapRect.h = keyRect.h;
     SDL_BlitSurface(textSurface, NULL, surface, &keyCapRect);
@@ -178,7 +178,7 @@ void Keyboard::drawKey(SDL_Surface *surface, vector<touchArea> *keyList, int x,
 
   SDL_Rect keyCapRect;
   keyCapRect.x = keyRect.x + ((keyRect.w / 2) - (textSurface->w / 2));
-  keyCapRect.y = keyRect.y;
+  keyCapRect.y = keyRect.y + ((keyRect.h / 2) - (textSurface->h / 2));
   keyCapRect.w = keyRect.w;
   keyCapRect.h = keyRect.h;
   SDL_BlitSurface(textSurface, NULL, surface, &keyCapRect);
