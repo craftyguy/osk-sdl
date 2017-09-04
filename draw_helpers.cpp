@@ -52,7 +52,7 @@ void smooth_corners(SDL_Rect *rect, int radius,function<void(int,int)> draw_cb){
     free(corner);
 }
 void smooth_corners_surface(SDL_Surface*surface,Uint32 color,SDL_Rect*rect,int radius){
-  smooth_corners(rect,radius,[&](int x,int y)void{
+  smooth_corners(rect,radius,[&](int x,int y){
     Uint8 * pixel = (Uint8*)surface->pixels;
     pixel += (y * surface->pitch) + (x * sizeof(Uint32));
     *((Uint32*)pixel) = color;
@@ -60,7 +60,7 @@ void smooth_corners_surface(SDL_Surface*surface,Uint32 color,SDL_Rect*rect,int r
 }
 void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int radius){
     SDL_SetRenderDrawColor(renderer,color->r,color->g,color->b,color->a);
-    smooth_corners(rect,radius,[&](int x,int y)void{
+    smooth_corners(rect,radius,[&](int x,int y){
       SDL_RenderDrawPoint(renderer,x,y);
     });
 }

@@ -9,7 +9,6 @@
 #include "keyboard.h"
 #include "luksdevice.h"
 #include <math.h>
-#include <functional>
 
 using namespace std;
 

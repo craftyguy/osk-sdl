@@ -153,8 +153,9 @@ int main(int argc, char **args) {
   wallpaperColor.a = 255;
   if(sscanf(config.wallpaper.c_str(), "#%02x%02x%02x", &wallpaperColor.r, &wallpaperColor.g, &wallpaperColor.b)!=3){
       fprintf(stderr, "Could not parse color code %s\n", config.wallpaper.c_str());
-      exit(1);
-    }
+      //to avoid akward colors just remove the radius
+      inputBoxRadius = 0;
+  }
   SDL_Rect inputRect;
   while (luksDev->isLocked()) {
     SDL_RenderCopy(renderer, wallpaperTexture, NULL, NULL);
