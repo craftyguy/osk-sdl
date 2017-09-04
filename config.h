@@ -14,7 +14,8 @@ public:
   string wallpaper;
   string keyboardFont;
   string keyboardMap;
-
+  string inputBoxRadius;
+  string keyRadius;
 private:
   bool Parse(istream & file);
 

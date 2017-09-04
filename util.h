@@ -10,14 +10,12 @@
 #include "luksdevice.h"
 #include <math.h>
 
-
 using namespace std;
 
 
 const string DEFAULT_LUKSDEVPATH = "/home/user/disk";
 const string DEFAULT_LUKSDEVNAME = "root";
 const string DEFAULT_CONFPATH = "/etc/osk.conf";
-
 
 struct Opts{
   string luksDevPath;

@@ -20,7 +20,7 @@ int fetchOpts(int argc, char **args, Opts *opts){
       opts->confPath = optarg;
       break;
     default:
-      fprintf(stdout, "Usage: osk_mouse [-t] [-d /dev/sda] [-n device_name] [-c /etc/osk.conf]\n");
+      fprintf(stdout, "Usage: osk-sdl [-t] [-d /dev/sda] [-n device_name] [-c /etc/osk.conf]\n");
       return 1;
     }
   if (opts->luksDevPath.empty()) {
@@ -119,8 +119,6 @@ void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
   inputRect.h = inputHeight;
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderFillRect(renderer, &inputRect);
-
-
   int deflection = inputHeight / 4;
   int ypos = y + inputHeight / 2;
   float tick = (float) SDL_GetTicks();
@@ -175,3 +173,4 @@ void handleVirtualKeyPress(string tapped, Keyboard *kbd, LuksDevice *lkd,
   }
   return;
 }
+

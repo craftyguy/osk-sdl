@@ -9,6 +9,7 @@
 #include "config.h"
 #include "util.h"
 #include "tooltip.h"
+#include "draw_helpers.h"
 
 
 #define TICK_INTERVAL 16
@@ -50,7 +51,7 @@ int main(int argc, char **args) {
   SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS |
-               SDL_INIT_TIMER ) < 0) {
+               SDL_INIT_TIMER | SDL_INIT_JOYSTICK) < 0) {
     SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SDL_Init failed: %s", SDL_GetError());
     SDL_Quit();
     exit(1);
@@ -149,10 +150,21 @@ int main(int argc, char **args) {
   SDL_Texture* wallpaperTexture = SDL_CreateTextureFromSurface(renderer, wallpaper);
 
   string tapped;
-
   bool showPasswordError = false;
   int lastUnlockingState = false;
-
+  long inputBoxRadius = strtol(config.inputBoxRadius.c_str(),NULL,10);
+  if(inputBoxRadius >= BEZIER_RESOLUTION || inputBoxRadius > inputHeight/1.5){
+    fprintf(stderr,"inputbox-radius must be below %f and %f, it is %ld\n",BEZIER_RESOLUTION,inputHeight/1.5,inputBoxRadius);
+    inputBoxRadius = 0;
+  }
+  argb wallpaperColor;
+  wallpaperColor.a = 255;
+  if(sscanf(config.wallpaper.c_str(), "#%02x%02x%02x", &wallpaperColor.r, &wallpaperColor.g, &wallpaperColor.b)!=3){
+      fprintf(stderr, "Could not parse color code %s\n", config.wallpaper.c_str());
+      //to avoid akward colors just remove the radius
+      inputBoxRadius = 0;
+  }
+  SDL_Rect inputRect;
   while (luksDev->isLocked()) {
     SDL_RenderCopy(renderer, wallpaperTexture, NULL, NULL);
     while (SDL_PollEvent(&event)) {
@@ -198,6 +210,7 @@ int main(int argc, char **args) {
         if (!luksDev->unlockRunning()){
           handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
         }
+        break;
       // handle the mouse
       case SDL_MOUSEBUTTONUP:
         unsigned int xMouse, yMouse, offsetYMouse;
@@ -257,6 +270,14 @@ int main(int argc, char **args) {
 
     if(showPasswordError){
       tooltip->draw(renderer, WIDTH/20, tooltipPosition);
+    }
+    if(inputBoxRadius > 0){
+      int topHalf = HEIGHT - (keyboard->getHeight() * keyboard->getPosition());
+      inputRect.x = WIDTH / 20;
+      inputRect.y = (topHalf / 2) - (inputHeight / 2);
+      inputRect.w = WIDTH * 0.9;
+      inputRect.h = inputHeight;
+      smooth_corners_renderer(renderer,&wallpaperColor,&inputRect,inputBoxRadius);
     }
 
     SDL_Delay(time_left(SDL_GetTicks(), next_time));

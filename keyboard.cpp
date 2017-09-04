@@ -1,5 +1,5 @@
 #include "keyboard.h"
-
+#include "draw_helpers.h"
 using namespace std;
 
 Keyboard::Keyboard(int pos, int targetPos, int width,
@@ -26,7 +26,13 @@ int Keyboard::init(SDL_Renderer *renderer){
   list<KeyboardLayer>::iterator layer;
 
   loadKeymap("");
-
+  long keyLong = strtol(config->keyRadius.c_str(),NULL,10);
+  if(keyLong >= BEZIER_RESOLUTION || keyLong > (keyboardHeight/5)/1.5){
+    fprintf(stderr,"key-radius must be below %f and %f, it is %ld\n",BEZIER_RESOLUTION,(keyboardHeight/5)/1.5,keyLong);
+    keyRadius = 0;
+  }else{
+    keyRadius = keyLong;
+  }
   for (layer = this->keyboard.begin(); layer != this->keyboard.end(); ++layer){
     (*layer).surface = makeKeyboard(&(*layer));
     if (!(*layer).surface){
@@ -121,6 +127,7 @@ void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x,
   auto keyBackground = SDL_MapRGB(surface->format, 15, 15, 15);
   SDL_Color textColor = {255, 255, 255, 0};
 
+  auto background = SDL_MapRGB(surface->format,keyboardColor.r ,keyboardColor.g, keyboardColor.b);
   int i = 0;
   list<string>::const_iterator keyCap;
   for (keyCap = keys->begin(); keyCap != keys->end(); ++keyCap) {
@@ -130,8 +137,10 @@ void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x,
     keyRect.w = width - (2 * padding);
     keyRect.h = height - (2 * padding);
     SDL_FillRect(surface, &keyRect, keyBackground);
+    if(keyRadius > 0){
+      smooth_corners_surface(surface,background,&keyRect,keyRadius);
+    }
     SDL_Surface *textSurface;
-
     keyList->push_back(
         {*keyCap, x + (i * width), x + (i * width) + width, y, y + height});
 
@@ -139,7 +148,7 @@ void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x,
 
     SDL_Rect keyCapRect;
     keyCapRect.x = keyRect.x + ((keyRect.w / 2) - (textSurface->w / 2));
-    keyCapRect.y = keyRect.y;
+    keyCapRect.y = keyRect.y + ((keyRect.h / 2) - (textSurface->h / 2));
     keyCapRect.w = keyRect.w;
     keyCapRect.h = keyRect.h;
     SDL_BlitSurface(textSurface, NULL, surface, &keyCapRect);
@@ -169,7 +178,7 @@ void Keyboard::drawKey(SDL_Surface *surface, vector<touchArea> *keyList, int x,
 
   SDL_Rect keyCapRect;
   keyCapRect.x = keyRect.x + ((keyRect.w / 2) - (textSurface->w / 2));
-  keyCapRect.y = keyRect.y;
+  keyCapRect.y = keyRect.y + ((keyRect.h / 2) - (textSurface->h / 2));
   keyCapRect.w = keyRect.w;
   keyCapRect.h = keyRect.h;
   SDL_BlitSurface(textSurface, NULL, surface, &keyCapRect);
