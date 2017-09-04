@@ -16,6 +16,7 @@ public:
   string keyboardMap;
   string inputBoxRadius;
   string keyRadius;
+  string allowMargins;
 private:
   bool Parse(istream & file);
 

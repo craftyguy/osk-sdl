@@ -10,6 +10,7 @@ Config::Config() {
   Config::keyboardBackground = "#333333";
   Config::keyboardMap = "us";
   Config::keyboardFont = "DejaVu";
+  Config::allowMargins = "true";
 }
 
 bool Config::Read(string path) {
@@ -51,6 +52,10 @@ bool Config::Read(string path) {
   it = Config::options.find("inputbox-radius");
   if (it != Config::options.end()) {
     Config::inputBoxRadius = Config::options["inputbox-radius"];
+  }
+  it = Config::options.find("allow-wallpaper-margins");
+  if (it != Config::options.end()) {
+    Config::allowMargins = Config::options["allow-wallpaper-margins"];
   }
   return true;
 }

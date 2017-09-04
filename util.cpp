@@ -1,5 +1,5 @@
 #include "util.h"
-
+#include "draw_helpers.h"
 int fetchOpts(int argc, char **args, Opts *opts){
   int opt;
 
@@ -86,9 +86,54 @@ SDL_Surface* make_wallpaper(SDL_Renderer *renderer, Config *config,
     }
     SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, r, g, b));
   }else{
-    // Implement image loading
-    fprintf(stderr, "Image loading not supported yet\n");
-    exit(1);
+    SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
+    SDL_Surface*img = NULL;
+    #ifndef IMG_GetError
+      img = SDL_LoadBMP(config->wallpaper.c_str());
+    #else
+      img = IMG_Load(config->wallpaper.c_str());
+    #endif
+    if(img == NULL){
+      fprintf(stderr,"Unable to open image, %s\n",SDL_GetError());
+      return surface;
+    }
+    if( !(img->h % height) && !(img->w % width)){
+      surface = img;
+    }else{
+      SDL_Rect img_size;
+      if(config->allowMargins.size() > 0 && (config->allowMargins[0] == 'f' || config->allowMargins[0] == 'F')){ 
+        if(abs(height-img->h) >= abs(width-img->w)){
+          img_size.w = width,
+          img_size.h = height * ((double)img->w/(double)width);
+        }else{
+          img_size.w = width * ((double)img->h/(double)height),
+          img_size.h = height;
+        }
+      }else{
+        if(img->h <= img->w){
+          img_size.w = width;
+          img_size.h = height * ((double)width/(double)img->w);
+        }else{
+          img_size.w = width* ((double)height/(double)img->h);
+          img_size.h = height;
+        }
+      }
+      SDL_Surface * scaled = scale_surface(img,&img_size );
+      if(!scaled){
+        fprintf(stderr,"unable scale image, error: %s\n",SDL_GetError());
+        SDL_FreeSurface(img);
+        return surface;
+      }
+      img_size.x = width/2 - scaled->w/2;
+      img_size.y = height/2 - scaled->h/2;
+      SDL_FreeSurface(img);
+      if(SDL_UpperBlit(scaled,NULL,surface,&img_size)){
+        fprintf(stderr,"Unable scale image, error: %s\n",SDL_GetError());
+        SDL_FreeSurface(scaled);
+        return surface;
+      }
+      SDL_FreeSurface(scaled);
+    }
   }
   return surface;
 }
