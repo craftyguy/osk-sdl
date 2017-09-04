@@ -100,21 +100,24 @@ SDL_Surface* make_wallpaper(SDL_Renderer *renderer, Config *config,
     if( !(img->h % height) && !(img->w % width)){
       surface = img;
     }else{
-      double factor = 1.0;
+      SDL_Rect img_size;
       if(config->allowMargins.size() > 0 && (config->allowMargins[0] == 'f' || config->allowMargins[0] == 'F')){ 
-        if((img->h % height) >= (img->w % width)){
-          factor = ((double)width/(double)img->w);
+        if(abs(height-img->h) >= abs(width-img->w)){
+          img_size.w = width,
+          img_size.h = height * ((double)img->w/(double)width);
         }else{
-          factor = ((double)height/(double)img->h);
+          img_size.w = width * ((double)img->h/(double)height),
+          img_size.h = height;
         }
       }else{
-        if((img->h % height) <= (img->w % width)){
-          factor = ((double)width/(double)img->w);
+        if(img->h <= img->w){
+          img_size.w = width;
+          img_size.h = height * ((double)width/(double)img->w);
         }else{
-          factor = ((double)height/(double)img->h);
+          img_size.w = width* ((double)height/(double)img->h);
+          img_size.h = height;
         }
       }
-      SDL_Rect img_size = {0,0,(int)(img->w * factor),(int)(img->h * factor)};
       SDL_Surface * scaled = scale_surface(img,&img_size );
       if(!scaled){
         fprintf(stderr,"unable scale image, error: %s\n",SDL_GetError());
