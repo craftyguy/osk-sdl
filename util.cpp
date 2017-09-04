@@ -87,9 +87,14 @@ SDL_Surface* make_wallpaper(SDL_Renderer *renderer, Config *config,
     SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, r, g, b));
   }else{
     SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, 0, 0, 0));
-    SDL_Surface*img = SDL_LoadBMP(config->wallpaper.c_str());
+    SDL_Surface*img = NULL;
+    #ifndef IMG_GetError
+      img = SDL_LoadBMP(config->wallpaper.c_str());
+    #else
+      img = IMG_Load(config->wallpaper.c_str());
+    #endif
     if(img == NULL){
-      fprintf(stderr,"Unable to open image, %s\n",IMG_GetError());
+      fprintf(stderr,"Unable to open image, %s\n",SDL_GetError());
       return surface;
     }
     if( !(img->h % height) && !(img->w % width)){
