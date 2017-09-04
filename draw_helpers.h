@@ -41,4 +41,11 @@ void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int 
   @returns an array of pixel coordinates (length equal to BEZIER_RESOLUTION)
 */
 SDL_Point* bezier_corner (SDL_Point*offset,SDL_Point *p1, SDL_Point *p2, SDL_Point *p3);
+
+/**
+  Stretch a surface to a specific size
+  @param surface the surface to modify
+  @param rect the "w" and "h" properties are the size to scale to, "x" and "y" are ignored
+*/
+SDL_Surface* scale_surface(SDL_Surface* surface, SDL_Rect* rect);
 #endif

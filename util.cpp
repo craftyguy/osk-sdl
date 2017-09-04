@@ -1,5 +1,5 @@
 #include "util.h"
-
+#include "draw_helpers.h"
 int fetchOpts(int argc, char **args, Opts *opts){
   int opt;
 
@@ -86,9 +86,41 @@ SDL_Surface* make_wallpaper(SDL_Renderer *renderer, Config *config,
     }
     SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, r, g, b));
   }else{
-    // Implement image loading
-    fprintf(stderr, "Image loading not supported yet\n");
-    exit(1);
+    SDL_Surface*img = SDL_LoadBMP(config->wallpaper.c_str());
+    if( !(img->h % height) && !(img->w % width)){
+      surface = img;
+    }else{
+      double factor = 1.0;
+      if(config->allowMargins.size() > 0 && config->allowMargins[0] == 't' || config->allowMargins[0] == 'T'){ 
+        if((img->h % height) >= (img->w % width)){
+          factor = ((double)width/(double)img->w);
+        }else{
+          factor = ((double)height/(double)img->h);
+        }
+      }else{
+        if((img->h % height) <= (img->w % width)){
+          factor = ((double)width/(double)img->w);
+        }else{
+          factor = ((double)height/(double)img->h);
+        }
+      }
+      SDL_Rect img_size = {0,0,(double)img->w * factor,(double)img->h * factor};
+      SDL_Surface * scaled = scale_surface(img,&img_size );
+      if(!scaled){
+        fprintf(stderr,"unable scale image, error: %s\n",SDL_GetError());
+        SDL_FreeSurface(img);
+        return surface;
+      }
+      img_size.x = width/2 - scaled->w/2;
+      img_size.y = height/2 - scaled->h/2;
+      SDL_FreeSurface(img);
+      if(SDL_UpperBlit(scaled,NULL,surface,&img_size)){
+        fprintf(stderr,"Unable scale image, error: %s\n",SDL_GetError());
+        SDL_FreeSurface(scaled);
+        return surface;
+      }
+      SDL_FreeSurface(scaled);
+    }
   }
   return surface;
 }

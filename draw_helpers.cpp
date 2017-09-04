@@ -64,3 +64,17 @@ void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int 
       SDL_RenderDrawPoint(renderer,x,y);
     });
 }
+SDL_Surface* scale_surface(SDL_Surface* surface, SDL_Rect* rect){
+  if(rect == NULL || surface == NULL || rect->w == 0 || rect->h == 0){
+    return NULL;
+  }
+  SDL_Surface * scaled = SDL_CreateRGBSurface(surface->flags,rect->w,rect->h,surface->format->BitsPerPixel,
+    surface->format->Rmask,surface->format->Gmask,surface->format->Bmask,surface->format->Amask);
+  if(!scaled){
+    return NULL;
+  }
+  if(SDL_BlitScaled(surface,NULL,scaled,NULL)){
+    return NULL;
+  }
+  return scaled;
+}
