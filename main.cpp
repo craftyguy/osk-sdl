@@ -277,7 +277,7 @@ int main(int argc, char **args) {
       passwordPosition = topHalf / 3 * 2;
       tooltipPosition = topHalf / 3;
     }else{
-      passwordPosition = topHalf / 2;
+      passwordPosition = topHalf / 3;
     }
 
     draw_password_box(renderer, passphrase.size(), HEIGHT, WIDTH, inputHeight,
