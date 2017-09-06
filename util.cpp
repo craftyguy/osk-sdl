@@ -3,7 +3,7 @@
 int fetchOpts(int argc, char **args, Opts *opts){
   int opt;
 
-  while ((opt = getopt(argc, args, "td:n:c:")) != -1)
+  while ((opt = getopt(argc, args, "td:n:c:v")) != -1)
     switch (opt) {
     case 't':
       opts->luksDevPath = DEFAULT_LUKSDEVPATH;
@@ -19,8 +19,11 @@ int fetchOpts(int argc, char **args, Opts *opts){
     case 'c':
       opts->confPath = optarg;
       break;
+    case 'v':
+      opts->verbose = true;
+      break;
     default:
-      fprintf(stdout, "Usage: osk-sdl [-t] [-d /dev/sda] [-n device_name] [-c /etc/osk.conf]\n");
+      fprintf(stdout, "Usage: osk-sdl [-t] [-d /dev/sda] [-n device_name] [-c /etc/osk.conf] -v\n");
       return 1;
     }
   if (opts->luksDevPath.empty()) {

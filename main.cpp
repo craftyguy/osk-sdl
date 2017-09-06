@@ -48,7 +48,11 @@ int main(int argc, char **args) {
 
   LuksDevice *luksDev = new LuksDevice(opts.luksDevName, opts.luksDevPath);
 
-  SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
+  if (opts.verbose){
+    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_INFO);
+  }else{
+    SDL_LogSetAllPriority(SDL_LOG_PRIORITY_ERROR);
+  }
 
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS |
                SDL_INIT_TIMER | SDL_INIT_JOYSTICK) < 0) {
@@ -62,7 +66,8 @@ int main(int argc, char **args) {
     // in test mode.
     SDL_DisplayMode mode = { SDL_PIXELFORMAT_UNKNOWN, 0, 0, 0, 0};
     if(SDL_GetDisplayMode(0, 0, &mode) != 0){
-      SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "SDL_GetDisplayMode failed: %s", SDL_GetError());
+      SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "SDL_GetDisplayMode failed: %s",
+                   SDL_GetError());
       SDL_Quit();
       exit(1);
     }
@@ -93,7 +98,8 @@ int main(int argc, char **args) {
   renderer = SDL_CreateRenderer(display, -1, SDL_RENDERER_SOFTWARE);
 
   if (renderer == NULL) {
-    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: Could not create renderer: %s\n", SDL_GetError());
+    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: Could not create renderer: %s\n",
+                 SDL_GetError());
     SDL_Quit();
     exit(1);
   }
@@ -101,7 +107,8 @@ int main(int argc, char **args) {
   screen = SDL_GetWindowSurface(display);
 
   if (screen == NULL) {
-    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: Could not get window surface: %s\n", SDL_GetError());
+    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: Could not get window surface: %s\n",
+                 SDL_GetError());
     SDL_Quit();
     exit(1);
   }
@@ -147,20 +154,24 @@ int main(int argc, char **args) {
   SDL_StartTextInput();
 
   SDL_Surface* wallpaper = make_wallpaper(renderer, &config, WIDTH, HEIGHT);
-  SDL_Texture* wallpaperTexture = SDL_CreateTextureFromSurface(renderer, wallpaper);
+  SDL_Texture* wallpaperTexture = SDL_CreateTextureFromSurface(renderer,
+                                                               wallpaper);
 
   string tapped;
   bool showPasswordError = false;
   int lastUnlockingState = false;
   long inputBoxRadius = strtol(config.inputBoxRadius.c_str(),NULL,10);
   if(inputBoxRadius >= BEZIER_RESOLUTION || inputBoxRadius > inputHeight/1.5){
-    fprintf(stderr,"inputbox-radius must be below %f and %f, it is %ld\n",BEZIER_RESOLUTION,inputHeight/1.5,inputBoxRadius);
+    fprintf(stderr,"inputbox-radius must be below %f and %f, it is %ld\n",
+            BEZIER_RESOLUTION, inputHeight/1.5, inputBoxRadius);
     inputBoxRadius = 0;
   }
   argb wallpaperColor;
   wallpaperColor.a = 255;
-  if(sscanf(config.wallpaper.c_str(), "#%02x%02x%02x", &wallpaperColor.r, &wallpaperColor.g, &wallpaperColor.b)!=3){
-      fprintf(stderr, "Could not parse color code %s\n", config.wallpaper.c_str());
+  if(sscanf(config.wallpaper.c_str(), "#%02x%02x%02x",
+            &wallpaperColor.r, &wallpaperColor.g, &wallpaperColor.b)!=3){
+      fprintf(stderr, "Could not parse color code %s\n",
+              config.wallpaper.c_str());
       //to avoid akward colors just remove the radius
       inputBoxRadius = 0;
   }
@@ -203,7 +214,8 @@ int main(int argc, char **args) {
         // x and y values are normalized!
         xTouch = event.tfinger.x * WIDTH;
         yTouch = event.tfinger.y * HEIGHT;
-        printf("xTouch: %i\tyTouch: %i\n", xTouch, yTouch);
+        if (opts.verbose)
+          printf("xTouch: %i\tyTouch: %i\n", xTouch, yTouch);
         offsetYTouch = yTouch - (int)(HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
         tapped = keyboard->getCharForCoordinates(xTouch, offsetYTouch);
         showPasswordError = false;
@@ -216,7 +228,8 @@ int main(int argc, char **args) {
         unsigned int xMouse, yMouse, offsetYMouse;
         xMouse = event.button.x;
         yMouse = event.button.y;
-        printf("xMouse: %i\tyMouse: %i\n", xMouse, yMouse);
+        if (opts.verbose)
+          printf("xMouse: %i\tyMouse: %i\n", xMouse, yMouse);
         offsetYMouse = yMouse - (int)(HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
         tapped = keyboard->getCharForCoordinates(xMouse, offsetYMouse);
         showPasswordError = false;
@@ -235,6 +248,8 @@ int main(int argc, char **args) {
           prev_text_ticks = cur_ticks;
           if (!luksDev->unlockRunning()){
             passphrase.push_back(event.text.text);
+            if (opts.verbose)
+              printf("Phys Keyboard Key Entered %s\n", event.text.text);
           }
         }
         showPasswordError = false;
@@ -271,6 +286,7 @@ int main(int argc, char **args) {
     if(showPasswordError){
       tooltip->draw(renderer, WIDTH/20, tooltipPosition);
     }
+
     if(inputBoxRadius > 0){
       int topHalf = HEIGHT - (keyboard->getHeight() * keyboard->getPosition());
       inputRect.x = WIDTH / 20;

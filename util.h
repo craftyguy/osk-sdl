@@ -22,6 +22,7 @@ struct Opts{
   string luksDevName;
   string confPath;
   bool testMode;
+  bool verbose;
 };
 
 
