@@ -60,14 +60,6 @@ int fetchOpts(int argc, char **args, Opts *opts){
 }
 
 
-Uint32 time_left(Uint32 now, Uint32 next_time) {
-  if (next_time <= now)
-    return 0;
-  else
-    return next_time - now;
-}
-
-
 string strList2str(const list<string> *strList){
   string str = "";
   list<string>::const_iterator it;

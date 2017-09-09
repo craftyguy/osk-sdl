@@ -55,14 +55,6 @@ struct Opts{
 int fetchOpts(int argc, char **args, Opts *opts);
 
 /**
-  Calculate difference between current time and future time
-  @param now Time now
-  @param next_time Future time
-  @return Difference between times
-*/
-Uint32 time_left(Uint32 now, Uint32 next_time);
-
-/**
   Convert list of strings into a single string
   @param strList List of strings
   @return String with all elements of strList concatenated together
