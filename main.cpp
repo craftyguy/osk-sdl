@@ -79,6 +79,7 @@ Uint32 uiRenderCB(Uint32 i, void *data){
   }
   SDL_UnlockMutex(renderMutex);
 
+  topHalf = (urd->HEIGHT - (urd->keyboard->getHeight() * urd->keyboard->getPosition()));
   if(showPasswordError){
     passwordPosition = topHalf / 3 * 2;
     tooltipPosition = topHalf / 3;
@@ -89,11 +90,12 @@ Uint32 uiRenderCB(Uint32 i, void *data){
   if(showPasswordError){
     urd->tooltip->draw(urd->renderer, urd->WIDTH/20, tooltipPosition);
   }
+
   draw_password_box(urd->renderer, urd->passphrase->size(), urd->HEIGHT,
-                    urd->WIDTH, urd->inputHeight, urd->keyboard->getHeight(),
-                    urd->keyboard->getPosition(), urd->luksDev->unlockRunning());
+                    urd->WIDTH, urd->inputHeight, passwordPosition,
+                    urd->luksDev->unlockRunning());
+
   if(urd->inputBoxRadius > 0){
-    topHalf = (urd->HEIGHT - (urd->keyboard->getHeight() * urd->keyboard->getPosition()));
     inputRect.x = urd->WIDTH / 20;
     inputRect.y = (topHalf / 2) - (urd->inputHeight / 2);
     inputRect.w = urd->WIDTH * 0.9;
@@ -293,7 +295,6 @@ int main(int argc, char **args) {
 
   while (luksDev->isLocked()) {
     if (SDL_WaitEvent(&event)) {
-      SDL_LockMutex(renderMutex);
       cur_ticks = SDL_GetTicks();
       // an event was found
       switch (event.type) {
@@ -312,7 +313,6 @@ int main(int argc, char **args) {
           }
           break;
         case SDLK_BACKSPACE:
-          showPasswordError = false;
           if (passphrase.size() > 0 && !luksDev->unlockRunning()){
               passphrase.pop_back();
               continue;
@@ -333,7 +333,6 @@ int main(int argc, char **args) {
           printf("xTouch: %i\tyTouch: %i\n", xTouch, yTouch);
         offsetYTouch = yTouch - (int)(HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
         tapped = keyboard->getCharForCoordinates(xTouch, offsetYTouch);
-        showPasswordError = false;
         if (!luksDev->unlockRunning()){
           handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
         }
@@ -347,7 +346,6 @@ int main(int argc, char **args) {
           printf("xMouse: %i\tyMouse: %i\n", xMouse, yMouse);
         offsetYMouse = yMouse - (int)(HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
         tapped = keyboard->getCharForCoordinates(xMouse, offsetYMouse);
-        showPasswordError = false;
         if (!luksDev->unlockRunning()){
           handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
         }
@@ -367,9 +365,10 @@ int main(int argc, char **args) {
               printf("Phys Keyboard Key Entered %s\n", event.text.text);
           }
         }
-        showPasswordError = false;
         break;
       }
+      SDL_LockMutex(renderMutex);
+      showPasswordError = false;
       SDL_UnlockMutex(renderMutex);
     }
   }
