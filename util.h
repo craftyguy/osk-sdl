@@ -88,9 +88,12 @@ void draw_circle(SDL_Renderer *renderer, SDL_Point center, int radius);
   @param screenWidth Width of overall screen
   @param inputHeight Height of input box
   @param y Vertical position of the input box
+  @param color ARGB color for input box
+  @param inputBoxRadius Radius for rounding corners
 */
 void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
-                       int screenWidth, int inputHeight, int y, bool busy);
+                       int screenWidth, int inputHeight, int y, argb *color,
+                       int inputBoxRadius, bool busy);
 
 /**
   Handle keypresses for virtual keyboard

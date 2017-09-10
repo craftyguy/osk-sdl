@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "util.h"
+#include "draw_helpers.h"
 
 int fetchOpts(int argc, char **args, Opts *opts){
   int opt;
@@ -123,7 +124,8 @@ void draw_circle(SDL_Renderer *renderer, SDL_Point center, int radius) {
 
 
 void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
-                       int screenWidth, int inputHeight, int y, bool busy){
+                       int screenWidth, int inputHeight, int y, argb *color,
+                       int inputBoxRadius, bool busy){
 
   SDL_Rect inputRect;
   // Draw empty password box
@@ -133,6 +135,10 @@ void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
   inputRect.h = inputHeight;
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   SDL_RenderFillRect(renderer, &inputRect);
+
+  if(inputBoxRadius > 0){
+    smooth_corners_renderer(renderer, color, &inputRect, inputBoxRadius);
+  }
   int deflection = inputHeight / 4;
   int ypos = y + inputHeight / 2;
   float tick = (float) SDL_GetTicks();

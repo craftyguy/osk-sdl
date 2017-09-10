@@ -48,7 +48,6 @@ struct uiRenderData {
   int WIDTH;
   int inputHeight;
   int inputBoxRadius;
-  bool showPasswordError;
 };
 
 bool lastUnlockingState = false;
@@ -58,7 +57,6 @@ SDL_mutex *renderMutex;
 
 Uint32 uiRenderCB(Uint32 i, void *data){
   const uiRenderData *urd = (uiRenderData*) data;
-  SDL_Rect inputRect;
   int topHalf;
   int passwordPosition;
   int tooltipPosition;
@@ -80,29 +78,19 @@ Uint32 uiRenderCB(Uint32 i, void *data){
   SDL_UnlockMutex(renderMutex);
 
   topHalf = (urd->HEIGHT - (urd->keyboard->getHeight() * urd->keyboard->getPosition()));
-  if(showPasswordError){
-    passwordPosition = topHalf / 3 * 2;
-    tooltipPosition = topHalf / 3;
-  }else{
-    passwordPosition = topHalf / 3;
-  }
 
+  // Only show either error box or password input box, not both
   if(showPasswordError){
+    tooltipPosition = topHalf / 4;
     urd->tooltip->draw(urd->renderer, urd->WIDTH/20, tooltipPosition);
-  }
-
-  draw_password_box(urd->renderer, urd->passphrase->size(), urd->HEIGHT,
+  }else{
+   passwordPosition = topHalf / 3.5;
+   draw_password_box(urd->renderer, urd->passphrase->size(), urd->HEIGHT,
                     urd->WIDTH, urd->inputHeight, passwordPosition,
+                    urd->wallpaperColor, urd->inputBoxRadius,
                     urd->luksDev->unlockRunning());
-
-  if(urd->inputBoxRadius > 0){
-    inputRect.x = urd->WIDTH / 20;
-    inputRect.y = (topHalf / 2) - (urd->inputHeight / 2);
-    inputRect.w = urd->WIDTH * 0.9;
-    inputRect.h = urd->inputHeight;
-    smooth_corners_renderer(urd->renderer, urd->wallpaperColor, &inputRect,
-                            urd->inputBoxRadius);
   }
+
   SDL_RenderPresent(urd->renderer);
   return i;
 }
