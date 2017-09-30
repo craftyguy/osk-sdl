@@ -48,6 +48,7 @@ struct uiRenderData {
   int WIDTH;
   int inputHeight;
   int inputBoxRadius;
+  bool renderUpdate;
 };
 
 bool lastUnlockingState = false;
@@ -91,7 +92,7 @@ Uint32 uiRenderCB(Uint32 i, void *data){
                     urd->luksDev->unlockRunning());
   }
 
-  SDL_RenderPresent(urd->renderer);
+  ( (uiRenderData*) data )->renderUpdate = true;
   return i;
 }
 
@@ -269,6 +270,7 @@ int main(int argc, char **args) {
   urd.WIDTH = WIDTH;
   urd.inputHeight = inputHeight;
   urd.inputBoxRadius = inputBoxRadius;
+  urd.renderUpdate = false;
 
   uiRenderTimerID = SDL_AddTimer(TICK_INTERVAL, uiRenderCB, &urd);
   if (uiRenderTimerID == 0){
@@ -279,7 +281,7 @@ int main(int argc, char **args) {
   }
 
   while (luksDev->isLocked()) {
-    if (SDL_WaitEvent(&event)) {
+    while (SDL_PollEvent(&event)) {
       cur_ticks = SDL_GetTicks();
       // an event was found
       switch (event.type) {
@@ -354,6 +356,12 @@ int main(int argc, char **args) {
       }
       SDL_LockMutex(renderMutex);
       showPasswordError = false;
+      SDL_UnlockMutex(renderMutex);
+    }
+    if(urd.renderUpdate){
+      SDL_LockMutex(renderMutex);
+      urd.renderUpdate = false;
+      SDL_RenderPresent(urd.renderer);
       SDL_UnlockMutex(renderMutex);
     }
   }
