@@ -43,6 +43,8 @@ struct uiRenderData {
   list<string> *passphrase;
   LuksDevice *luksDev;
   SDL_Texture* wallpaperTexture;
+  SDL_Texture* inputBoxTexture;
+  SDL_Rect* inputBoxRect;
   argb *wallpaperColor;
   int HEIGHT;
   int WIDTH;
@@ -59,7 +61,6 @@ SDL_mutex *renderMutex;
 Uint32 uiRenderCB(Uint32 i, void *data){
   const uiRenderData *urd = (uiRenderData*) data;
   int topHalf;
-  int passwordPosition;
   int tooltipPosition;
 
   SDL_RenderCopy(urd->renderer, urd->wallpaperTexture, NULL, NULL);
@@ -84,12 +85,15 @@ Uint32 uiRenderCB(Uint32 i, void *data){
   if(showPasswordError){
     tooltipPosition = topHalf / 4;
     urd->tooltip->draw(urd->renderer, urd->WIDTH/20, tooltipPosition);
-  }else{
-   passwordPosition = topHalf / 3.5;
-   draw_password_box(urd->renderer, urd->passphrase->size(), urd->HEIGHT,
+  }else{  
+   urd->inputBoxRect->y = (int)(topHalf / 3.5),
+   SDL_RenderCopy(urd->renderer, urd->inputBoxTexture, NULL, urd->inputBoxRect);
+   draw_password_box_dots(urd->renderer, urd->inputHeight, urd->WIDTH, urd->passphrase->size(), 
+                        urd->inputBoxRect->y, urd->luksDev->unlockRunning());
+   /* draw_password_box(urd->renderer, urd->passphrase->size(), urd->HEIGHT,
                     urd->WIDTH, urd->inputHeight, passwordPosition,
                     urd->wallpaperColor, urd->inputBoxRadius,
-                    urd->luksDev->unlockRunning());
+                    urd->luksDev->unlockRunning()); */
   }
 
   ( (uiRenderData*) data )->renderUpdate = true;
@@ -199,7 +203,7 @@ int main(int argc, char **args) {
     SDL_Quit();
     exit(1);
   }
-
+  
   int keyboardHeight = HEIGHT / 3 * 2;
   if (HEIGHT > WIDTH) {
     // Keyboard height is screen width / max number of keys per row * rows
@@ -258,6 +262,25 @@ int main(int argc, char **args) {
       inputBoxRadius = 0;
   }
 
+  argb inputBoxColor = argb{255,255,255,255};
+
+  SDL_Surface* inputBox = make_input_box(WIDTH * 0.9, inputHeight, &inputBoxColor, inputBoxRadius);
+  SDL_Texture* inputBoxTexture = SDL_CreateTextureFromSurface(renderer, inputBox);
+
+  int topHalf = (HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
+  SDL_Rect inputRect = SDL_Rect{
+    .x = WIDTH / 20,
+    .y = (int)(topHalf / 3.5),
+    .w = (int)((double)WIDTH * 0.9),
+    .h = inputHeight
+  };
+
+  if(inputBoxTexture == NULL){
+    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: Could not create input box texture: %s\n",
+      SDL_GetError());
+    SDL_Quit();
+    exit(1);
+  }
   //Set up and start render callback
   urd.keyboard = keyboard;
   urd.renderer = renderer;
@@ -271,6 +294,8 @@ int main(int argc, char **args) {
   urd.inputHeight = inputHeight;
   urd.inputBoxRadius = inputBoxRadius;
   urd.renderUpdate = false;
+  urd.inputBoxTexture = inputBoxTexture;
+  urd.inputBoxRect = &inputRect;
 
   uiRenderTimerID = SDL_AddTimer(TICK_INTERVAL, uiRenderCB, &urd);
   if (uiRenderTimerID == 0){

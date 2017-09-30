@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 SDL_Point* bezier_corner (SDL_Point*pts, SDL_Point*offset,SDL_Point *p1, SDL_Point *p2, SDL_Point *p3) {
   int i = 0;
-  const float increment = 1/BEZIER_RESOLUTION;
+  static float increment = 1/BEZIER_RESOLUTION;
 
   for(double t = increment; t <= 1.0; t += increment){
     pts[i].x = ((1-t)*(1-t)*p1->x+2*(1-t)*t*p2->x+t*t*p3->x) + offset->x;
@@ -72,10 +72,12 @@ void smooth_corners(SDL_Rect *rect, int radius,function<void(int,int)> draw_cb){
 }
 void smooth_corners_surface(SDL_Surface*surface,Uint32 color,SDL_Rect*rect,int radius){
   smooth_corners(rect,radius,[&](int x,int y){
+    if(x >= surface->w || y >= surface->h || y < 0 || x < 0)
+      return;
     Uint8 * pixel = (Uint8*)surface->pixels;
     pixel += (y * surface->pitch) + (x * sizeof(Uint32));
     *((Uint32*)pixel) = color;
-    });
+  });
 }
 void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int radius){
     SDL_SetRenderDrawColor(renderer,color->r,color->g,color->b,color->a);
@@ -85,13 +87,13 @@ void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int 
 }
 
 
-SDL_Surface* make_password_box(int inputWidth, int inputHeight, argb *color, int inputBoxRadius){
+SDL_Surface* make_input_box(int inputWidth, int inputHeight, argb *color, int inputBoxRadius){
 
   SDL_Rect inputRect;
   inputRect.x = 1;
   inputRect.y = 1;
-  inputRect.w = inputWidth + 2;
-  inputRect.h = inputHeight + 2;
+  inputRect.w = inputWidth + 3;
+  inputRect.h = inputHeight + 3;
 
   SDL_Surface* surf;
   #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -101,8 +103,8 @@ SDL_Surface* make_password_box(int inputWidth, int inputHeight, argb *color, int
   #endif
   SDL_FillRect(surf, &inputRect, SDL_MapRGBA(surf->format, color->r, color->g, color->b, color->a));
 
-  inputRect.w--;
-  inputRect.h--;
+  inputRect.w -= 2;
+  inputRect.h -= 2;
   
   if(inputBoxRadius > 0)
     smooth_corners_surface(surf, SDL_MapRGBA(surf->format,0,0,0,0), &inputRect, inputBoxRadius);
