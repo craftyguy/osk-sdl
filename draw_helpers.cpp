@@ -32,7 +32,7 @@ SDL_Point* bezier_corner (SDL_Point*pts, SDL_Point*offset,SDL_Point *p1, SDL_Poi
 }
 
 void smooth_corners(SDL_Rect *rect, int radius,function<void(int,int)> draw_cb){
-    SDL_Point* corner = malloc(sizeof(SDL_Point)*BEZIER_RESOLUTION);
+    SDL_Point* corner = (SDL_Point*)malloc(sizeof(SDL_Point)*BEZIER_RESOLUTION);
     //Top Left
     bezier_corner(corner, new SDL_Point{rect->x-1,rect->y-1}, new SDL_Point{0,radius},
       new SDL_Point{0,0},new SDL_Point{radius,0});
