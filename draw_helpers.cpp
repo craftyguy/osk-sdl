@@ -84,3 +84,28 @@ void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int 
     });
 }
 
+
+SDL_Surface* make_password_box(int inputWidth, int inputHeight, argb *color, int inputBoxRadius){
+
+  SDL_Rect inputRect;
+  inputRect.x = 1;
+  inputRect.y = 1;
+  inputRect.w = inputWidth + 2;
+  inputRect.h = inputHeight + 2;
+
+  SDL_Surface* surf;
+  #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    surf = SDL_CreateRGBSurface(SDL_SWSURFACE, inputRect.w, inputRect.h, 32, 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff);
+  #else
+    surf = SDL_CreateRGBSurface(SDL_SWSURFACE, inputRect.w, inputRect.h, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000);
+  #endif
+  SDL_FillRect(surf, &inputRect, SDL_MapRGBA(surf->format, color->r, color->g, color->b, color->a));
+
+  inputRect.w--;
+  inputRect.h--;
+  
+  if(inputBoxRadius > 0)
+    smooth_corners_surface(surf, SDL_MapRGBA(surf->format,0,0,0,0), &inputRect, inputBoxRadius);
+
+  return surf;
+}
