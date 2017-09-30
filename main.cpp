@@ -50,13 +50,14 @@ struct uiRenderData {
   int WIDTH;
   int inputHeight;
   int inputBoxRadius;
-  bool renderUpdate;
 };
 
 bool lastUnlockingState = false;
 bool showPasswordError = false;
 
 SDL_mutex *renderMutex;
+
+Uint32 EVENT_RENDER_PRESENT;
 
 Uint32 uiRenderCB(Uint32 i, void *data){
   const uiRenderData *urd = (uiRenderData*) data;
@@ -96,7 +97,10 @@ Uint32 uiRenderCB(Uint32 i, void *data){
                     urd->luksDev->unlockRunning()); */
   }
 
-  ( (uiRenderData*) data )->renderUpdate = true;
+  static SDL_Event event{
+    .type = EVENT_RENDER_PRESENT
+  };
+  SDL_PushEvent(&event);
   return i;
 }
 
@@ -281,6 +285,14 @@ int main(int argc, char **args) {
     SDL_Quit();
     exit(1);
   }
+
+  EVENT_RENDER_PRESENT = SDL_RegisterEvents(1);
+  if(EVENT_RENDER_PRESENT == -1){
+    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: failed to register draw event: %s\n",
+      SDL_GetError());
+    SDL_Quit();
+    exit(1);
+  }
   //Set up and start render callback
   urd.keyboard = keyboard;
   urd.renderer = renderer;
@@ -293,7 +305,6 @@ int main(int argc, char **args) {
   urd.WIDTH = WIDTH;
   urd.inputHeight = inputHeight;
   urd.inputBoxRadius = inputBoxRadius;
-  urd.renderUpdate = false;
   urd.inputBoxTexture = inputBoxTexture;
   urd.inputBoxRect = &inputRect;
 
@@ -306,7 +317,7 @@ int main(int argc, char **args) {
   }
 
   while (luksDev->isLocked()) {
-    while (SDL_PollEvent(&event)) {
+    if (SDL_WaitEvent(&event)) {
       cur_ticks = SDL_GetTicks();
       // an event was found
       switch (event.type) {
@@ -377,16 +388,15 @@ int main(int argc, char **args) {
               printf("Phys Keyboard Key Entered %s\n", event.text.text);
           }
         }
-        break;
+        break; 
       }
-      SDL_LockMutex(renderMutex);
-      showPasswordError = false;
-      SDL_UnlockMutex(renderMutex);
-    }
-    if(urd.renderUpdate){
-      SDL_LockMutex(renderMutex);
-      urd.renderUpdate = false;
-      SDL_RenderPresent(urd.renderer);
+      if(event.type == EVENT_RENDER_PRESENT){
+        SDL_LockMutex(renderMutex);
+        SDL_RenderPresent(urd.renderer);
+      }else{
+        SDL_LockMutex(renderMutex);
+        showPasswordError = false;
+      }
       SDL_UnlockMutex(renderMutex);
     }
   }
