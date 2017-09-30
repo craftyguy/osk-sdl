@@ -19,30 +19,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "draw_helpers.h"
 
-SDL_Point* bezier_corner (SDL_Point*offset,SDL_Point *p1, SDL_Point *p2, SDL_Point *p3) {
-  SDL_Point*pts = (SDL_Point*)malloc(sizeof(SDL_Point) * BEZIER_RESOLUTION);
+SDL_Point* bezier_corner (SDL_Point*pts, SDL_Point*offset,SDL_Point *p1, SDL_Point *p2, SDL_Point *p3) {
   int i = 0;
-  for(double t=0.0; t<=1.0; t+=1/BEZIER_RESOLUTION){
+  const float increment = 1/BEZIER_RESOLUTION;
+
+  for(double t = increment; t <= 1.0; t += increment){
     pts[i].x = ((1-t)*(1-t)*p1->x+2*(1-t)*t*p2->x+t*t*p3->x) + offset->x;
     pts[i].y = ((1-t)*(1-t)*p1->y+2*(1-t)*t*p2->y+t*t*p3->y) + offset->y;
-    i++;
+    ++i;
   }
   return pts;
 }
 
 void smooth_corners(SDL_Rect *rect, int radius,function<void(int,int)> draw_cb){
+    SDL_Point* corner = malloc(sizeof(SDL_Point)*BEZIER_RESOLUTION);
     //Top Left
-    auto corner = bezier_corner(new SDL_Point{rect->x-1,rect->y-1}, new SDL_Point{0,radius},
+    bezier_corner(corner, new SDL_Point{rect->x-1,rect->y-1}, new SDL_Point{0,radius},
       new SDL_Point{0,0},new SDL_Point{radius,0});
     for(int i = 0; i < BEZIER_RESOLUTION; i++){
       for(int x =rect->x; x < corner[i].x; x++){
         draw_cb(x,corner[i].y);
       }
     }
-    free(corner);
 
     //Top Right
-    corner = bezier_corner(new SDL_Point{rect->x + rect->w+1,rect->y-1}, new SDL_Point{0,radius},
+    bezier_corner(corner, new SDL_Point{rect->x + rect->w+1,rect->y-1}, new SDL_Point{0,radius},
       new SDL_Point{0,0},new SDL_Point{-radius,0});
     for(int i = 0; i < BEZIER_RESOLUTION; i++){
       for(int x = rect->x+rect->w; x > corner[i].x; x--){
@@ -51,17 +52,16 @@ void smooth_corners(SDL_Rect *rect, int radius,function<void(int,int)> draw_cb){
     }
 
     //Bottom Left
-    corner = bezier_corner(new SDL_Point{rect->x-1,rect->y + rect->h+1}, new SDL_Point{0,-radius},
+    bezier_corner(corner, new SDL_Point{rect->x-1,rect->y + rect->h+1}, new SDL_Point{0,-radius},
       new SDL_Point{0,0},new SDL_Point{radius,0});
     for(int i = 0; i < BEZIER_RESOLUTION; i++){
       for(int x =rect->x; x < corner[i].x; x++){
         draw_cb(x,corner[i].y);
       }
     }
-    free(corner);
 
     //Bottom Right
-    corner = bezier_corner(new SDL_Point{rect->x + rect->w + 1,rect->y + rect->h + 1}, new SDL_Point{0,-radius},
+    bezier_corner(corner, new SDL_Point{rect->x + rect->w + 1,rect->y + rect->h + 1}, new SDL_Point{0,-radius},
       new SDL_Point{0,0},new SDL_Point{-radius,0});
     for(int i = 0; i < BEZIER_RESOLUTION; i++){
       for(int x = rect->x+rect->w; x > corner[i].x; x--){
@@ -83,3 +83,4 @@ void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int 
       SDL_RenderDrawPoint(renderer,x,y);
     });
 }
+
