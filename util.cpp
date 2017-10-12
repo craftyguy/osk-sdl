@@ -157,7 +157,25 @@ void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
   return;
 }
 
-
+void draw_password_box_dots(SDL_Renderer* renderer, int inputHeight, int screenWidth, 
+                              int numDots, int y, bool busy){
+  int deflection = inputHeight / 4;
+  int ypos = y + inputHeight / 2;
+  float tick = (float) SDL_GetTicks();
+  // Draw password dots
+  int dotSize = screenWidth * 0.02;
+  for (int i = 0; i < numDots; i++) {
+    SDL_Point dotPos;
+    dotPos.x = (screenWidth / 10) + (i * dotSize * 3);
+    if (busy) {
+      dotPos.y = ypos + sin((tick / 100.0)+(i)) * deflection;
+    } else {
+      dotPos.y = ypos;
+    }
+    draw_circle(renderer, dotPos, dotSize);
+  }
+  return;
+}
 void handleVirtualKeyPress(string tapped, Keyboard *kbd, LuksDevice *lkd,
                            list<string> *passphrase){
   // return pressed
