@@ -109,30 +109,30 @@ void Keyboard::draw(SDL_Renderer *renderer, int screenHeight){
   list<KeyboardLayer>::iterator layer;
   SDL_Rect keyboardRect, srcRect;
 
-  if (this->position != this->targetPosition){
-    if (this->position > this->targetPosition){
-      this->position -= (this->position - this->targetPosition) / 10;
-    }else
-      this->position += (this->targetPosition - this->position) / 10;
+  if (this->position > this->targetPosition){
+    this->position -= (this->position - this->targetPosition) / 10;
+  }else{
+    this->position += (this->targetPosition - this->position) / 10;
+  }
 
-    keyboardRect.x = 0;
-    keyboardRect.y = (int)(screenHeight - (this->keyboardHeight * this->position));
-    keyboardRect.w = this->keyboardWidth;
-    keyboardRect.h = (int)(this->keyboardHeight * this->position);
+  keyboardRect.x = 0;
+  keyboardRect.y = (int)(screenHeight - (this->keyboardHeight * this->position));
+  keyboardRect.w = this->keyboardWidth;
+  keyboardRect.h = (int)(this->keyboardHeight * this->position);
+  // Correct for any issues from rounding
+  keyboardRect.y += screenHeight - (keyboardRect.h + keyboardRect.y);
 
-    srcRect.x = 0;
-    srcRect.y = 0;
-    srcRect.w = this->keyboardWidth;
-    srcRect.h = keyboardRect.h;
+  srcRect.x = 0;
+  srcRect.y = 0;
+  srcRect.w = this->keyboardWidth;
+  srcRect.h = keyboardRect.h;
 
-    SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
+  SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
 
-
-    for (layer = keyboard.begin(); layer != keyboard.end(); ++layer){
-      if ((*layer).layerNum == this->activeLayer){
-        SDL_RenderCopy(renderer, (*layer).texture,
-                       &srcRect, &keyboardRect);
-      }
+  for (layer = keyboard.begin(); layer != keyboard.end(); ++layer){
+    if ((*layer).layerNum == this->activeLayer){
+      SDL_RenderCopy(renderer, (*layer).texture,
+                     &srcRect, &keyboardRect);
     }
   }
   return;
