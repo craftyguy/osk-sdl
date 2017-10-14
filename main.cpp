@@ -54,8 +54,8 @@ int main(int argc, char **args) {
   SDL_Renderer *renderer = NULL;
   SDL_TimerID uiRenderTimerID = 0;
   Tooltip *tooltip = NULL;
-  int WIDTH = 0;
-  int HEIGHT = 0;
+  int WIDTH = 400;
+  int HEIGHT = 600;
   int repeat_delay_ms = 100;    // Keyboard key repeat rate in ms
   int prev_keydown_ticks = 0;   // Two sep. prev_ticks required for handling
   int prev_text_ticks = 0;      // textinput & keydown event types
