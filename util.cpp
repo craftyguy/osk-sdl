@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 int fetchOpts(int argc, char **args, Opts *opts){
   int opt;
 
-  while ((opt = getopt(argc, args, "td:n:c:v")) != -1)
+  while ((opt = getopt(argc, args, "td:n:c:v:b")) != -1)
     switch (opt) {
     case 't':
       opts->luksDevPath = DEFAULT_LUKSDEVPATH;
@@ -42,8 +42,11 @@ int fetchOpts(int argc, char **args, Opts *opts){
     case 'v':
       opts->verbose = true;
       break;
+    case 'b':
+      opts->backbuf_wa = true;
+      break;
     default:
-      fprintf(stdout, "Usage: osk-sdl [-t] [-d /dev/sda] [-n device_name] [-c /etc/osk.conf] -v\n");
+      fprintf(stdout, "Usage: osk-sdl [-t] [-d /dev/sda] [-n device_name] [-c /etc/osk.conf] [-b] [-v]\n");
       return 1;
     }
   if (opts->luksDevPath.empty()) {

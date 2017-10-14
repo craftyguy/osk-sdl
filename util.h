@@ -40,8 +40,9 @@ struct Opts{
   string luksDevPath;
   string luksDevName;
   string confPath;
-  bool testMode;
-  bool verbose;
+  bool testMode = false;
+  bool verbose = false;
+  bool backbuf_wa = false;
 };
 
 

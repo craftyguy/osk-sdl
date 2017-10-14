@@ -23,6 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cstdlib>
 #include <unistd.h>
 #include <list>
+#include <linux/fb.h>
+#include <sys/ioctl.h>
 #include "keyboard.h"
 #include "luksdevice.h"
 #include "config.h"
@@ -48,6 +50,7 @@ struct uiRenderData {
   int WIDTH;
   int inputHeight;
   int inputBoxRadius;
+  bool backbuf_wa;
 };
 
 bool lastUnlockingState = false;
@@ -92,6 +95,30 @@ Uint32 uiRenderCB(Uint32 i, void *data){
   }
 
   SDL_RenderPresent(urd->renderer);
+
+  // Workaround for double buffering FB implementation on some devices
+  if (urd->backbuf_wa){
+    struct fb_var_screeninfo vinfo;
+    int fbd;
+    FILE *fbf = fopen("/dev/fb0", "r+");
+    if (fbf == NULL) {
+        fprintf(stderr,"Error: cannot open framebuffer device\n");
+        return 0;
+    }
+    fbd = fileno(fbf);
+    // Get variable screen information
+    if (ioctl(fbd, FBIOGET_VSCREENINFO, &vinfo) == -1) {
+        fprintf(stderr, "Error reading screen info\n");
+        return 0;
+    }
+    // Put variable screen information
+    if (ioctl(fbd, FBIOPUT_VSCREENINFO, &vinfo) == -1) {
+        fprintf(stderr, "Error applying screen info\n");
+        return 0;
+    }
+    fclose(fbf);
+  }
+
   return i;
 }
 
@@ -269,6 +296,7 @@ int main(int argc, char **args) {
   urd.WIDTH = WIDTH;
   urd.inputHeight = inputHeight;
   urd.inputBoxRadius = inputBoxRadius;
+  urd.backbuf_wa = opts.backbuf_wa;
 
   uiRenderTimerID = SDL_AddTimer(TICK_INTERVAL, uiRenderCB, &urd);
   if (uiRenderTimerID == 0){
