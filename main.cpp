@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "SDL2/SDL.h"
 #include <iostream>
 #include <string>
+#include <cmath>
 #include <cstdlib>
 #include <unistd.h>
 #include <list>
@@ -31,69 +32,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "draw_helpers.h"
 
 
-#define TICK_INTERVAL 16
+#define TICK_INTERVAL 32
 
 
 using namespace std;
 
-struct uiRenderData {
-  SDL_Renderer *renderer;
-  Keyboard *keyboard;
-  Tooltip *tooltip;
-  list<string> *passphrase;
-  LuksDevice *luksDev;
-  SDL_Texture* wallpaperTexture;
-  argb *wallpaperColor;
-  int HEIGHT;
-  int WIDTH;
-  int inputHeight;
-  int inputBoxRadius;
-};
-
+Uint32 EVENT_RENDER;
 bool lastUnlockingState = false;
 bool showPasswordError = false;
-
-SDL_mutex *renderMutex;
-
-Uint32 uiRenderCB(Uint32 i, void *data){
-  const uiRenderData *urd = (uiRenderData*) data;
-  int topHalf;
-  int passwordPosition;
-  int tooltipPosition;
-
-  SDL_RenderCopy(urd->renderer, urd->wallpaperTexture, NULL, NULL);
-  // Hide keyboard if unlock luks thread is running
-  urd->keyboard->setTargetPosition(!urd->luksDev->unlockRunning());
-  urd->keyboard->draw(urd->renderer, urd->HEIGHT);
-
-  SDL_LockMutex(renderMutex);
-  if(lastUnlockingState != urd->luksDev->unlockRunning()){
-    if(urd->luksDev->unlockRunning() == false && urd->luksDev->isLocked()){
-      // Luks is finished and the password was wrong
-      showPasswordError = true;
-      urd->passphrase->clear();
-    }
-    lastUnlockingState = urd->luksDev->unlockRunning();
-  }
-  SDL_UnlockMutex(renderMutex);
-
-  topHalf = (urd->HEIGHT - (urd->keyboard->getHeight() * urd->keyboard->getPosition()));
-
-  // Only show either error box or password input box, not both
-  if(showPasswordError){
-    tooltipPosition = topHalf / 4;
-    urd->tooltip->draw(urd->renderer, urd->WIDTH/20, tooltipPosition);
-  }else{
-   passwordPosition = topHalf / 3.5;
-   draw_password_box(urd->renderer, urd->passphrase->size(), urd->HEIGHT,
-                    urd->WIDTH, urd->inputHeight, passwordPosition,
-                    urd->wallpaperColor, urd->inputBoxRadius,
-                    urd->luksDev->unlockRunning());
-  }
-
-  SDL_RenderPresent(urd->renderer);
-  return i;
-}
+static string ErrorText = "Incorrect passphrase";
 
 
 int main(int argc, char **args) {
@@ -104,24 +51,17 @@ int main(int argc, char **args) {
   SDL_Window *display = NULL;
   SDL_Surface *screen = NULL;
   SDL_Renderer *renderer = NULL;
-  SDL_TimerID uiRenderTimerID = 0;
   Tooltip *tooltip = NULL;
-  uiRenderData urd;
   int WIDTH = 480;
   int HEIGHT = 800;
   int repeat_delay_ms = 100;    // Keyboard key repeat rate in ms
   int prev_keydown_ticks = 0;   // Two sep. prev_ticks required for handling
   int prev_text_ticks = 0;      // textinput & keydown event types
   int cur_ticks = 0;
-  string ErrorText = "Incorrect passphrase";
 
-
-
-  renderMutex = SDL_CreateMutex();
-  if (!renderMutex){
-    fprintf(stderr, "Unable to initialize rendering mutex\n");
-    exit(1);
-  }
+  static SDL_Event renderEvent{
+    .type = EVENT_RENDER
+  };
 
   if (fetchOpts(argc, args, &opts)){
     exit(1);
@@ -257,27 +197,32 @@ int main(int argc, char **args) {
       inputBoxRadius = 0;
   }
 
-  //Set up and start render callback
-  urd.keyboard = keyboard;
-  urd.renderer = renderer;
-  urd.tooltip = tooltip;
-  urd.wallpaperTexture = wallpaperTexture;
-  urd.passphrase = &passphrase;
-  urd.luksDev = luksDev;
-  urd.wallpaperColor = &wallpaperColor;
-  urd.HEIGHT = HEIGHT;
-  urd.WIDTH = WIDTH;
-  urd.inputHeight = inputHeight;
-  urd.inputBoxRadius = inputBoxRadius;
+  argb inputBoxColor = argb{255,255,255,255};
 
-  uiRenderTimerID = SDL_AddTimer(TICK_INTERVAL, uiRenderCB, &urd);
-  if (uiRenderTimerID == 0){
-    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: Could not start render timer: %s\n",
+  SDL_Surface* inputBox = make_input_box(WIDTH * 0.9, inputHeight,
+                                         &inputBoxColor, inputBoxRadius);
+  SDL_Texture* inputBoxTexture = SDL_CreateTextureFromSurface(renderer,
+                                                              inputBox);
+
+  int topHalf = (HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
+  SDL_Rect inputBoxRect= SDL_Rect{
+    .x = WIDTH / 20,
+      .y = (int)(topHalf / 3.5),
+      .w = (int)((double)WIDTH * 0.9),
+      .h = inputHeight
+  };
+
+  if(inputBoxTexture == NULL){
+    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: Could not create input box texture: %s\n",
                  SDL_GetError());
     atexit(SDL_Quit);
     exit(1);
   }
 
+  // Start drawing keyboard when main loop starts
+  SDL_PushEvent(&renderEvent);
+
+  // The Main Loop.
   while (luksDev->isLocked()) {
     if (SDL_WaitEvent(&event)) {
       cur_ticks = SDL_GetTicks();
@@ -289,6 +234,7 @@ int main(int argc, char **args) {
         if ((cur_ticks - repeat_delay_ms) < prev_keydown_ticks){
           continue;
         }
+        showPasswordError = false;
         prev_keydown_ticks = cur_ticks;
         switch (event.key.keysym.sym) {
         case SDLK_RETURN:
@@ -296,21 +242,24 @@ int main(int argc, char **args) {
             luksDev->setPassphrase(strList2str(&passphrase));
             luksDev->unlock();
           }
-          break;
+          break; // SDLK_RETURN
         case SDLK_BACKSPACE:
           if (passphrase.size() > 0 && !luksDev->unlockRunning()){
-              passphrase.pop_back();
-              continue;
+            passphrase.pop_back();
+            SDL_PushEvent(&renderEvent);
+            continue;
           }
-          break;
+          break; // SDLK_BACKSPACE
         case SDLK_ESCAPE:
           goto QUIT;
-          break;
+          break; // SDLK_ESCAPE
         }
-        break;
+        SDL_PushEvent(&renderEvent);
+        break; // SDL_KEYDOWN
       // handle touchscreen
       case SDL_FINGERUP:
         unsigned int xTouch, yTouch, offsetYTouch;
+        showPasswordError = false;
         // x and y values are normalized!
         xTouch = event.tfinger.x * WIDTH;
         yTouch = event.tfinger.y * HEIGHT;
@@ -321,10 +270,12 @@ int main(int argc, char **args) {
         if (!luksDev->unlockRunning()){
           handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
         }
-        break;
+        break; // SDL_FINGERUP
+        SDL_PushEvent(&renderEvent);
       // handle the mouse
       case SDL_MOUSEBUTTONUP:
         unsigned int xMouse, yMouse, offsetYMouse;
+        showPasswordError = false;
         xMouse = event.button.x;
         yMouse = event.button.y;
         if (opts.verbose)
@@ -334,13 +285,15 @@ int main(int argc, char **args) {
         if (!luksDev->unlockRunning()){
           handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
         }
-        break;
+        SDL_PushEvent(&renderEvent);
+        break; // SDL_MOUSEBUTTONUP
       // handle physical keyboard
       case SDL_TEXTINPUT:
         /*
          * Only register text input if time since last text input has exceeded
          * the keyboard repeat delay rate
          */
+        showPasswordError = false;
         // Enable key repeat delay
         if ((cur_ticks - repeat_delay_ms) > prev_text_ticks){
           prev_text_ticks = cur_ticks;
@@ -350,17 +303,52 @@ int main(int argc, char **args) {
               printf("Phys Keyboard Key Entered %s\n", event.text.text);
           }
         }
-        break;
+        SDL_PushEvent(&renderEvent);
+        break; // SDL_TEXTINPUT
+      } // switch event.type
+      // Render event handler
+      if (event.type == EVENT_RENDER){
+        int topHalf;
+        int tooltipPosition;
+
+        SDL_RenderCopy(renderer, wallpaperTexture, NULL, NULL);
+        // Hide keyboard if unlock luks thread is running
+        keyboard->setTargetPosition(!luksDev->unlockRunning());
+        keyboard->draw(renderer, HEIGHT);
+
+        if(lastUnlockingState != luksDev->unlockRunning()){
+          if(luksDev->unlockRunning() == false && luksDev->isLocked()){
+            // Luks is finished and the password was wrong
+            showPasswordError = true;
+            passphrase.clear();
+            SDL_PushEvent(&renderEvent);
+          }
+          lastUnlockingState = luksDev->unlockRunning();
+        }
+        topHalf = (HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
+        // Only show either error box or password input box, not both
+        if(showPasswordError){
+          tooltipPosition = topHalf / 4;
+          tooltip->draw(renderer, WIDTH/20, tooltipPosition);
+        }else{
+          inputBoxRect.y = (int)(topHalf / 3.5);
+          SDL_RenderCopy(renderer, inputBoxTexture, NULL, &inputBoxRect);
+          draw_password_box_dots(renderer, inputHeight, WIDTH,
+                                 passphrase.size(), inputBoxRect.y,
+                                 luksDev->unlockRunning());
+        }
+        SDL_RenderPresent(renderer);
+        // If any animations are running, continue to push render events to the
+        // event queue
+        bool keyboardAnimate = (int)floor(keyboard->getTargetPosition()*100) != (int)floor(keyboard->getPosition()*100);
+        if (luksDev->unlockRunning() || keyboardAnimate){
+          SDL_PushEvent(&renderEvent);
+        }
       }
-      SDL_LockMutex(renderMutex);
-      showPasswordError = false;
-      SDL_UnlockMutex(renderMutex);
-    }
-  }
+    } // event handle loop
+  }   // main loop
 
 QUIT:
-  SDL_RemoveTimer(uiRenderTimerID);
-  SDL_DestroyMutex(renderMutex);
   SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER);
   atexit(SDL_Quit);
   delete keyboard;

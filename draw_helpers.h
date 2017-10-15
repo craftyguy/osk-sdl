@@ -60,4 +60,13 @@ void smooth_corners_renderer(SDL_Renderer*renderer,argb*color,SDL_Rect*rect,int 
   @returns an array of pixel coordinates (length equal to BREZIER_RESOLUTION)
 */
 SDL_Point* bezier_corner (SDL_Point*offset,SDL_Point *p1, SDL_Point *p2, SDL_Point *p3);
+
+/**
+  Create an input box base off a given width, height, color and radius
+  @param inputWidth box's width
+  @param inputHeight box's height
+  @param color the box's background color
+  @param inputBoxRadius degree to curve the box's corners, if inputWidth == inputHeight and inputBoxRadius == inputWidth/2 the box should be a circle
+*/
+SDL_Surface* make_input_box(int inputWidth, int inputHeight, argb *color, int inputBoxRadius);
 #endif

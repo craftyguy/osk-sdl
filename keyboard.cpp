@@ -108,11 +108,14 @@ float Keyboard::getHeight(){
 void Keyboard::draw(SDL_Renderer *renderer, int screenHeight){
   list<KeyboardLayer>::iterator layer;
   SDL_Rect keyboardRect, srcRect;
+  // These two variables set a limit on the precision of keyboard positioning
+  float position = floor(this->position * 100) / 100;
+  float targetPosition = floor(this->targetPosition * 100) / 100;
 
-  if (this->position > this->targetPosition){
-    this->position -= (this->position - this->targetPosition) / 10;
-  }else{
-    this->position += (this->targetPosition - this->position) / 10;
+  if (position > targetPosition){
+    this->position -= (position - targetPosition) / 10;
+  }else if (position < targetPosition){
+    this->position += (targetPosition - position) / 10;
   }
 
   keyboardRect.x = 0;

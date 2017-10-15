@@ -105,4 +105,16 @@ void draw_password_box(SDL_Renderer *renderer, int numDots, int screenHeight,
 void handleVirtualKeyPress(string tapped, Keyboard *kbd, LuksDevice *lkd,
                            list<string> *passphrase);
 
+
+/**
+  Draw the dots to represent hidden characters
+  @param renderer Initialized SDL_Renderer object
+  @param inputHeight Height of input box
+  @param screenWidth Width of overall screen
+  @param numDots Number of password 'dots' to draw
+  @param y Vertical position of the input box
+  @param busy if true the dots will play a loading animation
+*/
+void draw_password_box_dots(SDL_Renderer* renderer, int inputHeight, int screenWidth, 
+                              int numDots, int y, bool busy);
 #endif
