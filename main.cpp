@@ -58,6 +58,8 @@ int main(int argc, char **args) {
   int prev_keydown_ticks = 0;   // Two sep. prev_ticks required for handling
   int prev_text_ticks = 0;      // textinput & keydown event types
   int cur_ticks = 0;
+  char a[10];
+  a[10] = 0;
 
   static SDL_Event renderEvent{
     .type = EVENT_RENDER
