@@ -1,7 +1,10 @@
 language: c++
 dist: trusty
 sudo: required
+cache:
+  directories:
+    - $HOME/cppcheck
 before_install:
-- sudo .travis/install_cppcheck
+- .travis/install_cppcheck
 script:
   test/static_analysis.sh
