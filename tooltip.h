@@ -27,8 +27,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Tooltip {
 public:
+  /**
+    Constructor
+    @param width Width of the tooltip
+    @param height Height of the tooltip
+    @param config Config object
+    */
   Tooltip(int width, int height, Config *config);
+  /**
+    Initialize tooltip
+    @param renderer Initialized SDL renderer object
+    @param text Text to include in tooltip
+    @return Non-zero int on failure
+    */
   int init(SDL_Renderer *renderer, string text);
+  /**
+    Draw tooltip
+    @param renderer Initialized SDL renderer object
+    @param x X-axis coordinate
+    @param y Y-axis coordinate
+    */
   void draw(SDL_Renderer *renderer, int x, int y);
 private:
   SDL_Texture *texture = NULL;

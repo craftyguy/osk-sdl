@@ -26,19 +26,30 @@ using namespace std;
 
 class Config {
 public:
-  Config();
-  bool Read(string path);
-
   string keyboardBackground = "#333333";
   string wallpaper = "#FF9900";
   string keyboardFont = "DejaVu";
   string keyboardMap = "us";
   string inputBoxRadius = "0";
   string keyRadius = "0";
-private:
-  bool Parse(istream & file);
 
+  /**
+    Constructor for Config
+    */
+  Config();
+   /**
+    Read from config file
+    @path Path to config file
+    */
+  bool Read(string path);
+private:
   map<string, string> options;
+
+  /**
+    Parse configuration file
+    @file File to parse
+    */
+  bool Parse(istream & file);
 };
 
 #endif // CONFIG_H

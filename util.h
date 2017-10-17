@@ -88,8 +88,7 @@ void draw_circle(SDL_Renderer *renderer, SDL_Point center, int radius);
   @param lkd Initialized LuksDevice obj
   @param lkd passphrase Passphrase to modify
  */
-void handleVirtualKeyPress(string tapped, Keyboard *kbd, LuksDevice *lkd,
-                            list<string> *passphrase);
+void handleVirtualKeyPress(string tapped, Keyboard *kbd, LuksDevice *lkd, list<string> *passphrase);
 
 
 /**

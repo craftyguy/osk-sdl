@@ -25,27 +25,27 @@ int fetchOpts(int argc, char **args, Opts *opts){
 
   while ((opt = getopt(argc, args, "td:n:c:v")) != -1)
     switch (opt) {
-    case 't':
-      opts->luksDevPath = DEFAULT_LUKSDEVPATH;
-      opts->luksDevName = DEFAULT_LUKSDEVNAME;
-      opts->testMode = true;
-      break;
-    case 'd':
-      opts->luksDevPath = optarg;
-      break;
-    case 'n':
-      opts->luksDevName = optarg;
-      break;
-    case 'c':
-      opts->confPath = optarg;
-      break;
-    case 'v':
-      opts->verbose = true;
-      break;
-    default:
-      fprintf(stdout, "Usage: osk-sdl [-t] [-d /dev/sda] [-n device_name] "
-              "[-c /etc/osk.conf] -v\n");
-      return 1;
+      case 't':
+        opts->luksDevPath = DEFAULT_LUKSDEVPATH;
+        opts->luksDevName = DEFAULT_LUKSDEVNAME;
+        opts->testMode = true;
+        break;
+      case 'd':
+        opts->luksDevPath = optarg;
+        break;
+      case 'n':
+        opts->luksDevName = optarg;
+        break;
+      case 'c':
+        opts->confPath = optarg;
+        break;
+      case 'v':
+        opts->verbose = true;
+        break;
+      default:
+        fprintf(stdout, "Usage: osk-sdl [-t] [-d /dev/sda] [-n device_name] "
+                "[-c /etc/osk.conf] -v\n");
+        return 1;
     }
   if (opts->luksDevPath.empty()) {
     fprintf(stderr, "No device path specified, use -d [path] or -t\n");
@@ -72,27 +72,26 @@ string strList2str(const list<string> *strList){
 }
 
 
-SDL_Surface* make_wallpaper(SDL_Renderer *renderer, Config *config,
-                            int width, int height){
+SDL_Surface* make_wallpaper(SDL_Renderer *renderer, Config *config, int width, int height){
   SDL_Surface *surface;
   Uint32 rmask, gmask, bmask, amask;
 
   /* SDL interprets each pixel as a 32-bit number, so our masks must depend
-    on the endianness (byte order) of the machine */
-  #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    rmask = 0xff000000;
-    gmask = 0x00ff0000;
-    bmask = 0x0000ff00;
-    amask = 0x000000ff;
-  #else
-    rmask = 0x000000ff;
-    gmask = 0x0000ff00;
-    bmask = 0x00ff0000;
-    amask = 0xff000000;
-  #endif
+     on the endianness (byte order) of the machine */
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+  rmask = 0xff000000;
+  gmask = 0x00ff0000;
+  bmask = 0x0000ff00;
+  amask = 0x000000ff;
+#else
+  rmask = 0x000000ff;
+  gmask = 0x0000ff00;
+  bmask = 0x00ff0000;
+  amask = 0xff000000;
+#endif
 
   surface = SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32, rmask, gmask,
-                                bmask, amask);
+                                 bmask, amask);
 
   if(config->wallpaper[0] == '#'){
     unsigned int r, g, b;
@@ -125,8 +124,7 @@ void draw_circle(SDL_Renderer *renderer, SDL_Point center, int radius) {
 }
 
 
-void draw_password_box_dots(SDL_Renderer* renderer, int inputHeight,
-                            int screenWidth, int numDots, int y, bool busy) {
+void draw_password_box_dots(SDL_Renderer* renderer, int inputHeight, int screenWidth, int numDots, int y, bool busy) {
   int deflection = inputHeight / 4;
   int ypos = y + inputHeight / 2;
   float tick = (float) SDL_GetTicks();
@@ -136,7 +134,7 @@ void draw_password_box_dots(SDL_Renderer* renderer, int inputHeight,
     SDL_Point dotPos;
     dotPos.x = (screenWidth / 10) + (i * dotSize * 3);
     if (busy) {
-      dotPos.y = ypos + sin((tick / 100.0)+(i)) * deflection;
+      dotPos.y = ypos + sin((tick / 100.0) + (i)) * deflection;
     } else {
       dotPos.y = ypos;
     }
@@ -144,8 +142,7 @@ void draw_password_box_dots(SDL_Renderer* renderer, int inputHeight,
   }
   return;
 }
-void handleVirtualKeyPress(string tapped, Keyboard *kbd, LuksDevice *lkd,
-                          list<string> *passphrase){
+void handleVirtualKeyPress(string tapped, Keyboard *kbd, LuksDevice *lkd, list<string> *passphrase){
   // return pressed
   if(tapped.compare("\n") == 0){
     string pass = strList2str(passphrase);

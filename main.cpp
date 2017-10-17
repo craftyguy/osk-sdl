@@ -80,8 +80,7 @@ int main(int argc, char **args) {
     SDL_LogSetAllPriority(SDL_LOG_PRIORITY_ERROR);
   }
 
-  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS |
-              SDL_INIT_TIMER) < 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_TIMER) < 0) {
     SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SDL_Init failed: %s", SDL_GetError());
     atexit(SDL_Quit);
     exit(1);
@@ -184,23 +183,24 @@ int main(int argc, char **args) {
                                                               wallpaper);
 
   string tapped;
-  long inputBoxRadius = strtol(config.inputBoxRadius.c_str(),NULL,10);
-  if(inputBoxRadius >= BEZIER_RESOLUTION || inputBoxRadius > inputHeight/1.5){
-    fprintf(stderr,"inputbox-radius must be below %f and %f, it is %ld\n",
-            BEZIER_RESOLUTION, inputHeight/1.5, inputBoxRadius);
+  long inputBoxRadius = strtol(config.inputBoxRadius.c_str(), NULL, 10);
+  if(inputBoxRadius >= BEZIER_RESOLUTION || inputBoxRadius > inputHeight / 1.5){
+    fprintf(stderr, "inputbox-radius must be below %f and %f, it is %ld\n",
+            BEZIER_RESOLUTION, inputHeight / 1.5, inputBoxRadius);
     inputBoxRadius = 0;
   }
   argb wallpaperColor;
   wallpaperColor.a = 255;
-  if(sscanf(config.wallpaper.c_str(), "#%02x%02x%02x",
-            &wallpaperColor.r, &wallpaperColor.g, &wallpaperColor.b)!=3){
+  if(sscanf(config.wallpaper.c_str(), "#%02x%02x%02x", &wallpaperColor.r, &wallpaperColor.g,
+     &wallpaperColor.b) != 3){
+
       fprintf(stderr, "Could not parse color code %s\n",
               config.wallpaper.c_str());
       //to avoid akward colors just remove the radius
       inputBoxRadius = 0;
   }
 
-  argb inputBoxColor = argb{255,255,255,255};
+  argb inputBoxColor = argb{255, 255, 255, 255};
 
   SDL_Surface* inputBox = make_input_box(WIDTH * 0.9, inputHeight,
                                         &inputBoxColor, inputBoxRadius);
@@ -208,7 +208,7 @@ int main(int argc, char **args) {
                                                               inputBox);
 
   int topHalf = (HEIGHT - (keyboard->getHeight() * keyboard->getPosition()));
-  SDL_Rect inputBoxRect= SDL_Rect{
+  SDL_Rect inputBoxRect = SDL_Rect{
     .x = WIDTH / 20,
       .y = (int)(topHalf / 3.5),
       .w = (int)((double)WIDTH * 0.9),
@@ -232,86 +232,86 @@ int main(int argc, char **args) {
       cur_ticks = SDL_GetTicks();
       // an event was found
       switch (event.type) {
-      // handle the keyboard
-      case SDL_KEYDOWN:
-        // handle repeat key events
-        if ((cur_ticks - repeat_delay_ms) < prev_keydown_ticks){
-          continue;
-        }
-        showPasswordError = false;
-        prev_keydown_ticks = cur_ticks;
-        switch (event.key.keysym.sym) {
-        case SDLK_RETURN:
-          if (!passphrase.empty() && !luksDev->unlockRunning()){
-            string pass = strList2str(&passphrase);
-            luksDev->setPassphrase(&pass);
-            luksDev->unlock();
-          }
-          break; // SDLK_RETURN
-        case SDLK_BACKSPACE:
-          if (!passphrase.empty() && !luksDev->unlockRunning()){
-            passphrase.pop_back();
-            SDL_PushEvent(&renderEvent);
+        // handle the keyboard
+        case SDL_KEYDOWN:
+          // handle repeat key events
+          if ((cur_ticks - repeat_delay_ms) < prev_keydown_ticks){
             continue;
           }
-          break; // SDLK_BACKSPACE
-        case SDLK_ESCAPE:
-          goto QUIT;
-          break; // SDLK_ESCAPE
-        }
-        SDL_PushEvent(&renderEvent);
-        break; // SDL_KEYDOWN
-      // handle touchscreen
-      case SDL_FINGERUP:
-        unsigned int xTouch, yTouch, offsetYTouch;
-        showPasswordError = false;
-        // x and y values are normalized!
-        xTouch = event.tfinger.x * WIDTH;
-        yTouch = event.tfinger.y * HEIGHT;
-        if (opts.verbose)
-          printf("xTouch: %u\tyTouch: %u\n", xTouch, yTouch);
-        offsetYTouch = yTouch - (int)(HEIGHT - (keyboard->getHeight() *
-                                                keyboard->getPosition()));
-        tapped = keyboard->getCharForCoordinates(xTouch, offsetYTouch);
-        if (!luksDev->unlockRunning()){
-          handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
-        }
-        SDL_PushEvent(&renderEvent);
-        break; // SDL_FINGERUP
-      // handle the mouse
-      case SDL_MOUSEBUTTONUP:
-        unsigned int xMouse, yMouse, offsetYMouse;
-        showPasswordError = false;
-        xMouse = event.button.x;
-        yMouse = event.button.y;
-        if (opts.verbose)
-          printf("xMouse: %u\tyMouse: %u\n", xMouse, yMouse);
-        offsetYMouse = yMouse - (int)(HEIGHT - (keyboard->getHeight() *
-                                                keyboard->getPosition()));
-        tapped = keyboard->getCharForCoordinates(xMouse, offsetYMouse);
-        if (!luksDev->unlockRunning()){
-          handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
-        }
-        SDL_PushEvent(&renderEvent);
-        break; // SDL_MOUSEBUTTONUP
-      // handle physical keyboard
-      case SDL_TEXTINPUT:
-        /*
-         * Only register text input if time since last text input has exceeded
-         * the keyboard repeat delay rate
-         */
-        showPasswordError = false;
-        // Enable key repeat delay
-        if ((cur_ticks - repeat_delay_ms) > prev_text_ticks){
-          prev_text_ticks = cur_ticks;
-          if (!luksDev->unlockRunning()){
-            passphrase.push_back(event.text.text);
-            if (opts.verbose)
-              printf("Phys Keyboard Key Entered %s\n", event.text.text);
+          showPasswordError = false;
+          prev_keydown_ticks = cur_ticks;
+          switch (event.key.keysym.sym) {
+            case SDLK_RETURN:
+              if (!passphrase.empty() && !luksDev->unlockRunning()){
+                string pass = strList2str(&passphrase);
+                luksDev->setPassphrase(&pass);
+                luksDev->unlock();
+              }
+              break; // SDLK_RETURN
+            case SDLK_BACKSPACE:
+              if (!passphrase.empty() && !luksDev->unlockRunning()){
+                passphrase.pop_back();
+                SDL_PushEvent(&renderEvent);
+                continue;
+              }
+              break; // SDLK_BACKSPACE
+            case SDLK_ESCAPE:
+              goto QUIT;
+              break; // SDLK_ESCAPE
           }
-        }
-        SDL_PushEvent(&renderEvent);
-        break; // SDL_TEXTINPUT
+          SDL_PushEvent(&renderEvent);
+          break; // SDL_KEYDOWN
+          // handle touchscreen
+        case SDL_FINGERUP:
+          unsigned int xTouch, yTouch, offsetYTouch;
+          showPasswordError = false;
+          // x and y values are normalized!
+          xTouch = event.tfinger.x * WIDTH;
+          yTouch = event.tfinger.y * HEIGHT;
+          if (opts.verbose)
+            printf("xTouch: %u\tyTouch: %u\n", xTouch, yTouch);
+          offsetYTouch = yTouch - (int)(HEIGHT - (keyboard->getHeight() *
+                                                  keyboard->getPosition()));
+          tapped = keyboard->getCharForCoordinates(xTouch, offsetYTouch);
+          if (!luksDev->unlockRunning()){
+            handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
+          }
+          SDL_PushEvent(&renderEvent);
+          break; // SDL_FINGERUP
+          // handle the mouse
+        case SDL_MOUSEBUTTONUP:
+          unsigned int xMouse, yMouse, offsetYMouse;
+          showPasswordError = false;
+          xMouse = event.button.x;
+          yMouse = event.button.y;
+          if (opts.verbose)
+            printf("xMouse: %u\tyMouse: %u\n", xMouse, yMouse);
+          offsetYMouse = yMouse - (int)(HEIGHT - (keyboard->getHeight() *
+                                                  keyboard->getPosition()));
+          tapped = keyboard->getCharForCoordinates(xMouse, offsetYMouse);
+          if (!luksDev->unlockRunning()){
+            handleVirtualKeyPress(tapped, keyboard, luksDev, &passphrase);
+          }
+          SDL_PushEvent(&renderEvent);
+          break; // SDL_MOUSEBUTTONUP
+          // handle physical keyboard
+        case SDL_TEXTINPUT:
+          /*
+           * Only register text input if time since last text input has exceeded
+           * the keyboard repeat delay rate
+           */
+          showPasswordError = false;
+          // Enable key repeat delay
+          if ((cur_ticks - repeat_delay_ms) > prev_text_ticks){
+            prev_text_ticks = cur_ticks;
+            if (!luksDev->unlockRunning()){
+              passphrase.push_back(event.text.text);
+              if (opts.verbose)
+                printf("Phys Keyboard Key Entered %s\n", event.text.text);
+            }
+          }
+          SDL_PushEvent(&renderEvent);
+          break; // SDL_TEXTINPUT
       } // switch event.type
       // Render event handler
       if (event.type == EVENT_RENDER){
@@ -335,7 +335,7 @@ int main(int argc, char **args) {
         // Only show either error box or password input box, not both
         if(showPasswordError){
           int tooltipPosition = topHalf / 4;
-          tooltip->draw(renderer, WIDTH/20, tooltipPosition);
+          tooltip->draw(renderer, WIDTH / 20, tooltipPosition);
         }else{
           inputBoxRect.y = (int)(topHalf / 3.5);
           SDL_RenderCopy(renderer, inputBoxTexture, NULL, &inputBoxRect);

@@ -21,15 +21,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "draw_helpers.h"
 using namespace std;
 
-Keyboard::Keyboard(int pos, int targetPos, int width,
-                  int height, Config *config) {
+Keyboard::Keyboard(int pos, int targetPos, int width, int height, Config *config) {
 
   this->position = pos;
   this->targetPosition = targetPos;
   this->keyboardWidth = width;
   this->keyboardHeight = height;
   this->config = config;
- }
+}
 
 
 Keyboard::~Keyboard() {
@@ -44,10 +43,10 @@ int Keyboard::init(SDL_Renderer *renderer) {
   list<KeyboardLayer>::iterator layer;
 
   loadKeymap();
-  long keyLong = strtol(config->keyRadius.c_str(),NULL,10);
-  if(keyLong >= BEZIER_RESOLUTION || keyLong > (keyboardHeight/5)/1.5) {
-    fprintf(stderr,"key-radius must be below %f and %f, it is %ld\n",
-            BEZIER_RESOLUTION,(keyboardHeight/5)/1.5,keyLong);
+  long keyLong = strtol(config->keyRadius.c_str(), NULL, 10);
+  if(keyLong >= BEZIER_RESOLUTION || keyLong > (keyboardHeight / 5) / 1.5) {
+    fprintf(stderr, "key-radius must be below %f and %f, it is %ld\n",
+            BEZIER_RESOLUTION, (keyboardHeight / 5) / 1.5, keyLong);
     keyRadius = 0;
   }else{
     keyRadius = keyLong;
@@ -112,7 +111,7 @@ void Keyboard::draw(SDL_Renderer *renderer, int screenHeight) {
 
   keyboardRect.x = 0;
   keyboardRect.y = (int)(screenHeight - (this->keyboardHeight *
-                                        this->position));
+                                         this->position));
   keyboardRect.w = this->keyboardWidth;
   keyboardRect.h = (int)(this->keyboardHeight * this->position);
   // Correct for any issues from rounding
@@ -136,15 +135,14 @@ void Keyboard::draw(SDL_Renderer *renderer, int screenHeight) {
 }
 
 
-void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x,
-                      int y, int width, int height, list<string> *keys,
-                      int padding, TTF_Font *font) {
+void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x, int y, int width, int height,
+                       list<string> *keys, int padding, TTF_Font *font)
+{
 
   auto keyBackground = SDL_MapRGB(surface->format, 15, 15, 15);
   SDL_Color textColor = {255, 255, 255, 0};
 
-  auto background = SDL_MapRGB(surface->format,keyboardColor.r ,keyboardColor.g,
-                              keyboardColor.b);
+  auto background = SDL_MapRGB(surface->format, keyboardColor.r, keyboardColor.g, keyboardColor.b);
   int i = 0;
   list<string>::const_iterator keyCap;
   for (keyCap = keys->begin(); keyCap != keys->end(); ++keyCap) {
@@ -155,11 +153,10 @@ void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x,
     keyRect.h = height - (2 * padding);
     SDL_FillRect(surface, &keyRect, keyBackground);
     if(keyRadius > 0) {
-      smooth_corners_surface(surface,background,&keyRect,keyRadius);
+      smooth_corners_surface(surface, background, &keyRect, keyRadius);
     }
     SDL_Surface *textSurface;
-    keyList->push_back(
-        {*keyCap, x + (i * width), x + (i * width) + width, y, y + height});
+    keyList->push_back({*keyCap, x + (i * width), x + (i * width) + width, y, y + height});
 
     textSurface = TTF_RenderUTF8_Blended(font, keyCap->c_str(), textColor);
 
@@ -175,9 +172,9 @@ void Keyboard::drawRow(SDL_Surface *surface, vector<touchArea> *keyList, int x,
 }
 
 
-void Keyboard::drawKey(SDL_Surface *surface, vector<touchArea> *keyList, int x,
-                      int y, int width, int height, char *cap,
-                      const string *key, int padding, TTF_Font *font) {
+void Keyboard::drawKey(SDL_Surface *surface, vector<touchArea> *keyList, int x, int y, int width, int height, char *cap,
+                       const string *key, int padding, TTF_Font *font)
+{
   auto keyBackground = SDL_MapRGB(surface->format, 15, 15, 15);
   SDL_Color textColor = {255, 255, 255, 0};
 
@@ -205,8 +202,8 @@ SDL_Surface *Keyboard::makeKeyboard(KeyboardLayer *layer) {
   SDL_Surface *surface;
   Uint32 rmask, gmask, bmask, amask;
 
-/* SDL interprets each pixel as a 32-bit number, so our masks must depend
-  on the endianness (byte order) of the machine */
+  /* SDL interprets each pixel as a 32-bit number, so our masks must depend
+     on the endianness (byte order) of the machine */
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
   rmask = 0xff000000;
   gmask = 0x00ff0000;
@@ -220,8 +217,8 @@ SDL_Surface *Keyboard::makeKeyboard(KeyboardLayer *layer) {
 #endif
 
   surface = SDL_CreateRGBSurface(SDL_SWSURFACE, this->keyboardWidth,
-                                this->keyboardHeight, 32, rmask, gmask,
-                                bmask, amask);
+                                 this->keyboardHeight, 32, rmask, gmask,
+                                 bmask, amask);
 
   if (surface == NULL) {
     fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
@@ -229,8 +226,8 @@ SDL_Surface *Keyboard::makeKeyboard(KeyboardLayer *layer) {
   }
 
   SDL_FillRect(surface, NULL, SDL_MapRGB(surface->format, this->keyboardColor.r,
-                                        this->keyboardColor.g,
-                                        this->keyboardColor.b));
+                                         this->keyboardColor.g,
+                                         this->keyboardColor.b));
 
   int rowHeight = this->keyboardHeight / 5;
 
@@ -257,26 +254,26 @@ SDL_Surface *Keyboard::makeKeyboard(KeyboardLayer *layer) {
           rowHeight, &layer->row4, this->keyboardWidth / 100, font);
 
   // Divide the bottom row in 20 columns and use that for calculations
-  int colw = this->keyboardWidth/20;
+  int colw = this->keyboardWidth / 20;
 
   /* Draw symbols or ABC key based on which layer we are creating */
   if (layer->layerNum < 2) {
     char symb[] = "=\\<";
     drawKey(surface, &layer->keyList, colw, rowHeight * 4, colw*3, rowHeight,
-            symb, &KEYCAP_SYMBOLS, this->keyboardWidth/100, font);
+            symb, &KEYCAP_SYMBOLS, this->keyboardWidth / 100, font);
   }else if (layer->layerNum == 2) {
     char abc[] = "abc";
     drawKey(surface, &layer->keyList, colw, rowHeight * 4, colw*3, rowHeight,
-            abc, &KEYCAP_ABC, this->keyboardWidth/100, font);
+            abc, &KEYCAP_ABC, this->keyboardWidth / 100, font);
   }
 
   char space[] = " ";
   drawKey(surface, &layer->keyList, colw*5, rowHeight * 4, colw*10, rowHeight,
-          space, &KEYCAP_SPACE, this->keyboardWidth/100, font);
+          space, &KEYCAP_SPACE, this->keyboardWidth / 100, font);
 
   char enter[] = "OK";
   drawKey(surface, &layer->keyList, colw*15, rowHeight * 4,  colw*5, rowHeight,
-          enter, &KEYCAP_RETURN, this->keyboardWidth/100, font);
+          enter, &KEYCAP_RETURN, this->keyboardWidth / 100, font);
 
   return surface;
 }
@@ -310,22 +307,19 @@ void Keyboard::loadKeymap() {
   layer0.row1 = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
   layer0.row2 = {"q", "w", "e", "r", "t", "y", "u", "i", "o", "p"};
   layer0.row3 = {"a", "s", "d", "f", "g", "h", "j", "k", "l"};
-  layer0.row4 = {KEYCAP_SHIFT, "z", "x", "c", "v", "b", "n", "m",
-                KEYCAP_BACKSPACE};
+  layer0.row4 = {KEYCAP_SHIFT, "z", "x", "c", "v", "b", "n", "m", KEYCAP_BACKSPACE};
   layer0.layerNum = 0;
 
   layer1.row1 = {"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"};
   layer1.row2 = {"Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"};
   layer1.row3 = {"A", "S", "D", "F", "G", "H", "J", "K", "L"};
-  layer1.row4 = {KEYCAP_SHIFT, "Z", "X", "C", "V", "B", "N", "M",
-                KEYCAP_BACKSPACE};
+  layer1.row4 = {KEYCAP_SHIFT, "Z", "X", "C", "V", "B", "N", "M", KEYCAP_BACKSPACE};
   layer1.layerNum = 1;
 
   layer2.row1 = {"!", "@", "#", "$", "%", "^", "&", "*", "(", ")"};
   layer2.row2 = {";", ":", "'", "\"", ",", ".", "<", ">", "/", "?"};
   layer2.row3 = {"-", "_", "=", "+", "[", "]", "{", "}", "\\"};
-  layer2.row4 = {KEYCAP_SHIFT, "|", "\u20a4", "\u20ac", "\u2211", "\u221e",
-                "\u221a", "\u2248", KEYCAP_BACKSPACE};
+  layer2.row4 = {KEYCAP_SHIFT, "|", "\u20a4", "\u20ac", "\u2211", "\u221e", "\u221a", "\u2248", KEYCAP_BACKSPACE};
   layer2.layerNum = 2;
 
   this->keyboard.push_back(layer0);

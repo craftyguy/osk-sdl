@@ -72,7 +72,7 @@ bool Config::Read(string path) {
 
 bool Config::Parse(istream &file) {
   int lineno = 0;
-  for (std::string line; std::getline(file, line);) {
+  for (std::string line; std::getline(file, line); ) {
     lineno++;
 
     std::istringstream iss(line);
@@ -86,8 +86,7 @@ bool Config::Parse(istream &file) {
       continue;
     } else if (id == "") {
       continue;
-    } else if (!(iss >> eq >> val >> std::ws) || eq != "=" ||
-                iss.get() != EOF) {
+    } else if (!(iss >> eq >> val >> std::ws) || eq != "=" || iss.get() != EOF) {
       error = true;
     }
 
