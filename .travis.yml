@@ -7,7 +7,9 @@ cache:
   directories:
     - $HOME/cppcheck
 before_install:
-- .travis/install_cppcheck
+  - .travis/install_cppcheck
+  - .travis/install_nsiqcppstyle
 script:
-  test/static_analysis.sh
+  - test/static_analysis.sh
+  - test/lint_analysis.sh
 

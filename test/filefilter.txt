@@ -1,0 +1,15 @@
+- .git/
+- test/
+- .travis/
+~ RULE_4_1_A_B_use_space_for_indentation
+~ RULE_4_1_B_indent_each_enum_item_in_enum_block
+~ RULE_4_1_B_locate_each_enum_item_in_seperate_line
+~ RULE_4_1_C_align_long_function_parameter_list
+~ RULE_4_1_E_align_conditions
+~ RULE_4_2_A_A_space_around_operator
+~ RULE_4_4_A_do_not_write_over_120_columns_per_line
+~ RULE_4_5_A_braces_inside_of_function_should_be_located_in_end_of_line
+~ RULE_4_5_A_indent_blocks_inside_of_function
+~ RULE_5_3_A_provide_doxygen_function_comment_on_function_in_header
+~ RULE_9_1_A_do_not_use_hardcorded_include_path
+~ RULE_9_2_D_use_reentrant_function
