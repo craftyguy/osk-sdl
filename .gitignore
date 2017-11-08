@@ -1,4 +1,4 @@
-/osk-sdl
 /go.sh
 /.vscode/
-/*.o
+/bin
+/obj

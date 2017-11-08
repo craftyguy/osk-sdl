@@ -1,3 +1,5 @@
+TARGET     := osk-sdl
+
 SDL2_CFLAGS := $(shell sdl2-config --cflags)
 SDL2_LIBS  := $(shell sdl2-config --libs)
 
@@ -6,20 +8,30 @@ CXXFLAGS   := -std=c++14 -Wall -g $(SDL2_CFLAGS)
 
 LIBS       := -lcryptsetup $(SDL2_LIBS) -lSDL2_ttf
 
-SOURCES    := ${wildcard *.cpp}
-OBJECTS    := $(SOURCES:%.cpp=%.o)
+SRC_DIR    := src
+BIN_DIR    := bin
+OBJ_DIR    := obj
 
-all: osk-sdl
+SOURCES    := ${wildcard $(SRC_DIR)/*.cpp}
+OBJECTS    := $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 
-%.o: %.cpp
+all: directories $(BIN_DIR)/$(TARGET)
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@echo CC $<
 	@$(CXX) -c -o $@ $< $(CXXFLAGS)
 
-osk-sdl: $(OBJECTS)
+$(BIN_DIR)/$(TARGET): $(OBJECTS)
 	@echo LD $@
 	@$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
 
 .PHONY: clean
 
+.PHONY: directories
+
 clean:
-	-rm -fv *.o osk-sdl
+	-rm -rfv $(OBJ_DIR) $(BIN_DIR)
+
+directories:
+	@mkdir -p ./{bin,obj}
+
