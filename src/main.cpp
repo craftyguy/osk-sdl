@@ -49,7 +49,6 @@ int main(int argc, char **args) {
   Config config;
   SDL_Event event;
   SDL_Window *display = NULL;
-  SDL_Surface *screen = NULL;
   SDL_Renderer *renderer = NULL;
   Tooltip *tooltip = NULL;
   int WIDTH = 480;
@@ -101,7 +100,7 @@ int main(int argc, char **args) {
   }
 
   /*
-   * Set up display, renderer, & screen
+   * Set up display and renderer
    * Use windowed mode in test mode and device resolution otherwise
    */
   int windowFlags = 0;
@@ -130,15 +129,6 @@ int main(int argc, char **args) {
     exit(1);
   }
 
-  screen = SDL_GetWindowSurface(display);
-
-  if (screen == NULL) {
-    SDL_LogError(SDL_LOG_CATEGORY_VIDEO,
-                "ERROR: Could not get window surface: %s\n", SDL_GetError());
-    atexit(SDL_Quit);
-    exit(1);
-  }
-
   int keyboardHeight = HEIGHT / 3 * 2;
   if (HEIGHT > WIDTH) {
     // Keyboard height is screen width / max number of keys per row * rows
@@ -146,9 +136,14 @@ int main(int argc, char **args) {
   }
 
   int inputHeight = WIDTH / 10;
-  auto backgroundColor = SDL_MapRGB(screen->format, 255, 128, 0);
 
-  if (SDL_FillRect(screen, NULL, backgroundColor) != 0) {
+  if (SDL_SetRenderDrawColor(renderer, 255, 128, 0, SDL_ALPHA_OPAQUE) != 0) {
+    SDL_LogError(SDL_LOG_CATEGORY_VIDEO, "ERROR: Could not set background color: %s\n", SDL_GetError());
+    atexit(SDL_Quit);
+    exit(1);
+  }
+
+  if (SDL_RenderFillRect(renderer, NULL) != 0) {
     SDL_LogError(SDL_LOG_CATEGORY_VIDEO,
                 "ERROR: Could not fill background color: %s\n",
                 SDL_GetError());
