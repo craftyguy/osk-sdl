@@ -33,5 +33,6 @@ clean:
 	-rm -rfv $(OBJ_DIR) $(BIN_DIR)
 
 directories:
-	@mkdir -p ./{bin,obj}
+	@mkdir -p ./obj
+	@mkdir -p ./bin
 
