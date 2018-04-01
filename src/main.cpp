@@ -120,7 +120,7 @@ int main(int argc, char **args) {
     exit(1);
   }
 
-  renderer = SDL_CreateRenderer(display, -1, SDL_RENDERER_SOFTWARE);
+  renderer = SDL_CreateRenderer(display, -1, 0);
 
   if (renderer == NULL) {
     SDL_LogError(SDL_LOG_CATEGORY_VIDEO,
